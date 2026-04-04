@@ -113,7 +113,7 @@ app.use(requestLogger);
 
 // CORS configuration 
 const corsOrigin = process.env.NODE_ENV === 'production' 
-    ? (process.env.CORS_ORIGIN || 'https://klean-app.vercel.app/')
+    ? (process.env.CORS_ORIGIN || 'https://klean-app.vercel.app', 'http://localhost:5173')
     : process.env.CORS_ORIGIN || '*';
 
 app.use(cors({
@@ -189,7 +189,7 @@ if (process.env.NODE_ENV === 'production') {
 // Global error handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 const server = app.listen(PORT, () => {
     logger.info(`🚀 Server is running on port http://localhost:${PORT}`);
 });
