@@ -1,0 +1,737 @@
+{
+  "version": "2.0",
+  "baseURL": "http://localhost:3000/api/v1",
+  "authentication": "JWT Bearer Token in Authorization header",
+  "lastUpdated": "2026-04-04",
+  "endpoints": {
+    "Dashboard": {
+      "getDashboardSummary": {
+        "method": "GET",
+        "path": "/analytics/dashboard",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "queryParams": {
+          "branchId": { "type": "string", "required": false, "description": "For SUPER_ADMIN to filter by branch" }
+        },
+        "response": {
+          "totalOrders": "number",
+          "totalRevenue": "number",
+          "totalCustomers": "number",
+          "ordersByStatus": "object",
+          "branchLeaderboard": "array"
+        }
+      },
+      "getPeriodAnalytics": {
+        "method": "GET",
+        "path": "/analytics/period",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "queryParams": {
+          "startDate": { "type": "string", "required": true, "format": "YYYY-MM-DD" },
+          "endDate": { "type": "string", "required": true, "format": "YYYY-MM-DD" },
+          "branchId": { "type": "string", "required": false }
+        }
+      },
+      "getDailyAnalytics": {
+        "method": "GET",
+        "path": "/analytics/daily",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "queryParams": {
+          "date": { "type": "string", "required": false, "format": "YYYY-MM-DD", "note": "defaults to today" },
+          "branchId": { "type": "string", "required": false }
+        }
+      },
+      "getOrderTrends": {
+        "method": "GET",
+        "path": "/analytics/orders/trends",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "queryParams": {
+          "startDate": { "type": "string", "required": true, "format": "YYYY-MM-DD" },
+          "endDate": { "type": "string", "required": true, "format": "YYYY-MM-DD" },
+          "branchId": { "type": "string", "required": false }
+        }
+      },
+      "getRevenueAnalytics": {
+        "method": "GET",
+        "path": "/analytics/revenue",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "queryParams": {
+          "startDate": { "type": "string", "required": true, "format": "YYYY-MM-DD" },
+          "endDate": { "type": "string", "required": true, "format": "YYYY-MM-DD" },
+          "branchId": { "type": "string", "required": false }
+        }
+      },
+      "getCustomerAnalytics": {
+        "method": "GET",
+        "path": "/analytics/customers",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "queryParams": {
+          "startDate": { "type": "string", "required": true, "format": "YYYY-MM-DD" },
+          "endDate": { "type": "string", "required": true, "format": "YYYY-MM-DD" },
+          "branchId": { "type": "string", "required": false }
+        }
+      },
+      "exportDashboardPDF": {
+        "method": "POST",
+        "path": "/analytics/export/pdf",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "body": {
+          "dashboardData": "object",
+          "dateRange": { "startDate": "string", "endDate": "string" }
+        },
+        "response": "PDF file"
+      }
+    },
+    "Authentication": {
+      "register": {
+        "method": "POST",
+        "path": "/auth/sign-up",
+        "auth": false,
+        "body": {
+          "fullname": "string",
+          "email": "email",
+          "phoneNumber": "string",
+          "password": "string (min 8 chars, uppercase, lowercase, number, special char)",
+          "confirmPassword": "string",
+          "role": "string (SUPER_ADMIN|BRANCH_MANAGER|STAFF|CUSTOMER)"
+        },
+        "response": {
+          "user": "object",
+          "accessToken": "string",
+          "refreshToken": "string"
+        }
+      },
+      "login": {
+        "method": "POST",
+        "path": "/auth/login",
+        "auth": false,
+        "body": {
+          "email": "email",
+          "password": "string"
+        },
+        "response": {
+          "user": "object",
+          "accessToken": "string",
+          "refreshToken": "string"
+        }
+      },
+      "refreshToken": {
+        "method": "POST",
+        "path": "/auth/refresh-token",
+        "auth": false,
+        "body": {
+          "refreshToken": "string"
+        },
+        "response": {
+          "accessToken": "string",
+          "refreshToken": "string"
+        }
+      },
+      "logout": {
+        "method": "POST",
+        "path": "/auth/logout",
+        "auth": true,
+        "body": {
+          "refreshToken": "string"
+        }
+      },
+      "forgotPassword": {
+        "method": "POST",
+        "path": "/auth/forgot-password",
+        "auth": false,
+        "body": {
+          "email": "email"
+        }
+      },
+      "resetPassword": {
+        "method": "PATCH",
+        "path": "/auth/reset-password/:token",
+        "auth": false,
+        "body": {
+          "password": "string (min 8 chars)",
+          "confirmPassword": "string"
+        }
+      }
+    },
+    "System": {
+      "healthCheck": {
+        "method": "GET",
+        "path": "/health",
+        "auth": false,
+        "response": {
+          "success": "boolean",
+          "message": "string"
+        }
+      },
+      "apiDocs": {
+        "method": "GET",
+        "path": "/docs",
+        "auth": false,
+        "description": "Swagger UI documentation"
+      }
+    },
+    "Users": {
+      "createUser": {
+        "method": "POST",
+        "path": "/users",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "body": {
+          "fullname": "string",
+          "email": "email",
+          "phoneNumber": "string",
+          "password": "string",
+          "role": "string",
+          "branchId": "string"
+        }
+      },
+      "getAllUsers": {
+        "method": "GET",
+        "path": "/users",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"]
+      },
+      "getCustomers": {
+        "method": "GET",
+        "path": "/users/customers",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER", "STAFF"]
+      },
+      "getOwnProfile": {
+        "method": "GET",
+        "path": "/users/me",
+        "auth": true
+      },
+      "getUserById": {
+        "method": "GET",
+        "path": "/users/:userId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "userId": "string" }
+      },
+      "updateUser": {
+        "method": "PUT",
+        "path": "/users/:userId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "userId": "string" }
+      },
+      "softDeleteUser": {
+        "method": "PATCH",
+        "path": "/users/:userId/status",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "userId": "string" }
+      },
+      "deleteUser": {
+        "method": "DELETE",
+        "path": "/users/:userId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "pathParams": { "userId": "string" }
+      }
+    },
+    "Branch Managers": {
+      "createBranchManager": {
+        "method": "POST",
+        "path": "/branch-managers",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "body": {
+          "fullname": "string",
+          "email": "email",
+          "phoneNumber": "string",
+          "password": "string",
+          "branchId": "string"
+        }
+      },
+      "getBranchManagers": {
+        "method": "GET",
+        "path": "/branch-managers",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"]
+      },
+      "getBranchManagerById": {
+        "method": "GET",
+        "path": "/branch-managers/:userId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "userId": "string" }
+      },
+      "updateBranchManager": {
+        "method": "PUT",
+        "path": "/branch-managers/:userId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "pathParams": { "userId": "string" }
+      },
+      "deleteBranchManager": {
+        "method": "DELETE",
+        "path": "/branch-managers/:userId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "pathParams": { "userId": "string" }
+      }
+    },
+    "Branches": {
+      "createBranch": {
+        "method": "POST",
+        "path": "/branch",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "body": {
+          "name": "string",
+          "address": "string",
+          "phoneNumber": "string",
+          "managerId": "string"
+        }
+      },
+      "getAllBranches": {
+        "method": "GET",
+        "path": "/branch",
+        "auth": true
+      },
+      "getBranchById": {
+        "method": "GET",
+        "path": "/branch/:branchId",
+        "auth": true,
+        "pathParams": { "branchId": "string" }
+      },
+      "updateBranch": {
+        "method": "PUT",
+        "path": "/branch/:branchId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "pathParams": { "branchId": "string" }
+      },
+      "deleteBranch": {
+        "method": "DELETE",
+        "path": "/branch/:branchId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "pathParams": { "branchId": "string" }
+      }
+    },
+    "Orders": {
+      "createOrder": {
+        "method": "POST",
+        "path": "/orders",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER", "STAFF", "CUSTOMER"],
+        "body": {
+          "customerName": "string",
+          "customerPhone": "string",
+          "items": [
+            {
+              "itemType": "string (required)",
+              "quantity": "number (required, > 0)",
+              "unitPrice": "number (required, >= 0)"
+            }
+          ],
+          "pickupDate": "date (required, future date)",
+          "deliveryDate": "date (optional)",
+          "priority": "string (NORMAL|EXPRESS|URGENT)",
+          "discount": "number (0-100%)",
+          "totalAmount": "number",
+          "branchId": "string (required for admin)"
+        }
+      },
+      "getAllOrders": {
+        "method": "GET",
+        "path": "/orders",
+        "auth": true,
+        "queryParams": {
+          "status": { "type": "string", "enum": ["RECEIVED", "PROCESSING", "READY", "DELIVERED", "CANCELLED"] },
+          "paymentStatus": { "type": "string", "enum": ["PAID", "UNPAID"] },
+          "search": { "type": "string", "description": "Order number or customer name" },
+          "page": { "type": "number", "default": 1 },
+          "limit": { "type": "number", "default": 10, "max": 100 }
+        }
+      },
+      "getSingleOrder": {
+        "method": "GET",
+        "path": "/orders/:orderId",
+        "auth": true,
+        "pathParams": { "orderId": "string (ObjectId)" }
+      },
+      "updateOrder": {
+        "method": "PUT",
+        "path": "/orders/:orderId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "orderId": "string" },
+        "body": "any order fields"
+      },
+      "markOrderPaid": {
+        "method": "PUT",
+        "path": "/orders/:orderId/mark-paid",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "orderId": "string" },
+        "body": {}
+      },
+      "updateOrderStatus": {
+        "method": "PATCH",
+        "path": "/orders/:orderId/status",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER", "STAFF"],
+        "pathParams": { "orderId": "string" },
+        "body": {
+          "status": "string (RECEIVED|PROCESSING|READY|DELIVERED|CANCELLED)"
+        }
+      },
+      "deleteOrder": {
+        "method": "DELETE",
+        "path": "/orders/:orderId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "pathParams": { "orderId": "string" }
+      }
+    },
+    "Inventory": {
+      "getLowStockItems": {
+        "method": "GET",
+        "path": "/inventory/low-stock",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"]
+      },
+      "addInventoryItem": {
+        "method": "POST",
+        "path": "/inventory",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "body": {
+          "name": "string",
+          "category": "string",
+          "branchId": "string",
+          "currentStock": "number",
+          "unit": "string",
+          "reorderLevel": "number",
+          "unitCost": "number"
+        }
+      },
+      "getInventoryByBranch": {
+        "method": "GET",
+        "path": "/inventory/branch/:branchId",
+        "auth": true,
+        "pathParams": { "branchId": "string" }
+      },
+      "updateInventoryItem": {
+        "method": "PUT",
+        "path": "/inventory/:itemId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "itemId": "string" }
+      },
+      "deleteInventoryItem": {
+        "method": "DELETE",
+        "path": "/inventory/:itemId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "pathParams": { "itemId": "string" }
+      }
+    },
+    "Employees": {
+      "onboardEmployee": {
+        "method": "POST",
+        "path": "/employees",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "body": {
+          "fullname": "string (required)",
+          "email": "email (required, unique)",
+          "password": "string (required, min 8 chars)",
+          "phoneNumber": "string (required)",
+          "designation": "string (required)",
+          "department": "string (required)",
+          "branchId": "string (required)",
+          "joinDate": "date (required)",
+          "employeeJobRole": "string (SUPER_ADMIN|BRANCH_MANAGER|STAFF|CUSTOMER)"
+        }
+      },
+      "getAllEmployees": {
+        "method": "GET",
+        "path": "/employees",
+        "auth": true
+      },
+      "getEmployeeByUserId": {
+        "method": "GET",
+        "path": "/employees/user/:userId",
+        "auth": true,
+        "pathParams": { "userId": "string" }
+      },
+      "getEmployee": {
+        "method": "GET",
+        "path": "/employees/:employeeId",
+        "auth": true,
+        "pathParams": { "employeeId": "string" }
+      },
+      "updateEmployee": {
+        "method": "PUT",
+        "path": "/employees/:employeeId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "employeeId": "string" }
+      },
+      "terminateEmployee": {
+        "method": "POST",
+        "path": "/employees/:employeeId/terminate",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "employeeId": "string" }
+      },
+      "deleteEmployee": {
+        "method": "DELETE",
+        "path": "/employees/:employeeId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "pathParams": { "employeeId": "string" }
+      }
+    },
+    "Payroll": {
+      "createSalaryStructure": {
+        "method": "POST",
+        "path": "/payroll/structure/create",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "body": {
+          "name": "string",
+          "baseSalary": "number",
+          "allowances": "object",
+          "deductions": "object",
+          "taxRate": "number"
+        }
+      },
+      "getSalaryStructures": {
+        "method": "GET",
+        "path": "/payroll/structure/list",
+        "auth": true
+      },
+      "updateSalaryStructure": {
+        "method": "PUT",
+        "path": "/payroll/structure/:structureId",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "pathParams": { "structureId": "string" }
+      },
+      "processPayroll": {
+        "method": "POST",
+        "path": "/payroll/process",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "body": {
+          "employeeIds": "array",
+          "month": "string",
+          "year": "number"
+        }
+      },
+      "processPayrollForBranch": {
+        "method": "POST",
+        "path": "/payroll/process-branch",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "body": {
+          "branchId": "string",
+          "month": "string",
+          "year": "number"
+        }
+      },
+      "getPayrolls": {
+        "method": "GET",
+        "path": "/payroll/list",
+        "auth": true
+      },
+      "getPayroll": {
+        "method": "GET",
+        "path": "/payroll/:payrollId",
+        "auth": true,
+        "pathParams": { "payrollId": "string" }
+      },
+      "approvePayroll": {
+        "method": "PUT",
+        "path": "/payroll/:payrollId/approve",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "pathParams": { "payrollId": "string" }
+      },
+      "markPayrollAsPaid": {
+        "method": "PUT",
+        "path": "/payroll/:payrollId/mark-paid",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "pathParams": { "payrollId": "string" }
+      },
+      "generateSalarySlip": {
+        "method": "GET",
+        "path": "/payroll/:payrollId/salary-slip",
+        "auth": true,
+        "pathParams": { "payrollId": "string" },
+        "response": "PDF file"
+      }
+    },
+    "Leave Management": {
+      "createLeaveType": {
+        "method": "POST",
+        "path": "/leave/type/create",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"],
+        "body": {
+          "name": "string",
+          "description": "string",
+          "maxDays": "number",
+          "requiresApproval": "boolean"
+        }
+      },
+      "getLeaveTypes": {
+        "method": "GET",
+        "path": "/leave/type/list",
+        "auth": true
+      },
+      "requestLeave": {
+        "method": "POST",
+        "path": "/leave/request",
+        "auth": true,
+        "body": {
+          "leaveTypeId": "string",
+          "startDate": "date",
+          "endDate": "date",
+          "reason": "string"
+        }
+      },
+      "getLeaves": {
+        "method": "GET",
+        "path": "/leave/list",
+        "auth": true
+      },
+      "getLeave": {
+        "method": "GET",
+        "path": "/leave/:leaveId",
+        "auth": true,
+        "pathParams": { "leaveId": "string" }
+      },
+      "approveLeave": {
+        "method": "PUT",
+        "path": "/leave/:leaveId/approve",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "leaveId": "string" }
+      },
+      "rejectLeave": {
+        "method": "PUT",
+        "path": "/leave/:leaveId/reject",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "leaveId": "string" }
+      },
+      "cancelLeave": {
+        "method": "PUT",
+        "path": "/leave/:leaveId/cancel",
+        "auth": true,
+        "pathParams": { "leaveId": "string" }
+      },
+      "getLeaveBalance": {
+        "method": "GET",
+        "path": "/leave/balance/:employeeId",
+        "auth": true,
+        "pathParams": { "employeeId": "string" }
+      }
+    },
+    "Notifications": {
+      "getNotifications": {
+        "method": "GET",
+        "path": "/notifications",
+        "auth": true
+      },
+      "markNotificationAsRead": {
+        "method": "PUT",
+        "path": "/notifications/:notificationId/read",
+        "auth": true,
+        "pathParams": { "notificationId": "string" }
+      },
+      "markAllNotificationsAsRead": {
+        "method": "PUT",
+        "path": "/notifications/mark-all-read",
+        "auth": true
+      },
+      "deleteNotification": {
+        "method": "DELETE",
+        "path": "/notifications/:notificationId",
+        "auth": true,
+        "pathParams": { "notificationId": "string" }
+      },
+      "getLowStockAlerts": {
+        "method": "GET",
+        "path": "/notifications/low-stock/alerts",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"]
+      },
+      "resolveLowStockAlert": {
+        "method": "PUT",
+        "path": "/notifications/low-stock/alerts/:alertId/resolve",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "pathParams": { "alertId": "string" }
+      },
+      "manuallyTriggerLowStockCheck": {
+        "method": "POST",
+        "path": "/notifications/low-stock/check",
+        "auth": true,
+        "roles": ["SUPER_ADMIN"]
+      }
+    },
+    "Invoices": {
+      "createInvoice": {
+        "method": "POST",
+        "path": "/invoices",
+        "auth": true,
+        "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
+        "body": {
+          "orderId": "string"
+        }
+      },
+      "getMyInvoices": {
+        "method": "GET",
+        "path": "/invoices/my-invoices",
+        "auth": true
+      },
+      "getInvoiceById": {
+        "method": "GET",
+        "path": "/invoices/:id",
+        "auth": true,
+        "pathParams": { "id": "string" }
+      },
+      "downloadInvoice": {
+        "method": "GET",
+        "path": "/invoices/:id/download",
+        "auth": true,
+        "pathParams": { "id": "string" },
+        "response": "PDF file"
+      }
+    }
+  },
+  "httpStatusCodes": {
+    "200": "Success",
+    "201": "Created",
+    "400": "Bad Request (validation errors)",
+    "401": "Unauthorized (missing/invalid token)",
+    "403": "Forbidden (insufficient permissions)",
+    "404": "Not Found",
+    "409": "Conflict (duplicate entries)",
+    "500": "Server Error"
+  },
+  "roles": {
+    "SUPER_ADMIN": "Full system access",
+    "BRANCH_MANAGER": "Branch-level access",
+    "STAFF": "Limited operational access",
+    "CUSTOMER": "Self-service only"
+  },
+  "rateLimiting": {
+    "authEndpoints": "5 requests per 15 minutes",
+    "otherEndpoints": "100 requests per 15 minutes"
+  }
+}
