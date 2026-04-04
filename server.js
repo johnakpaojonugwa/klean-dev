@@ -113,7 +113,7 @@ app.use(requestLogger);
 
 // CORS configuration 
 const corsOrigin = process.env.NODE_ENV === 'production' 
-    ? (process.env.CORS_ORIGIN || 'https://yourdomain.com')
+    ? (process.env.CORS_ORIGIN || 'https://klean-app.vercel.app/')
     : process.env.CORS_ORIGIN || '*';
 
 app.use(cors({
