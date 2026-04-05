@@ -33,7 +33,7 @@ Your laundry management backend had a solid foundation but lacked several enterp
 ### 5. **Startup Credential Validation**
 **Issue**: Missing service credential checks at boot
 - **Risk**: App could start with invalid or missing API keys
-- **Fix**: Added production-only validation for SendGrid, Twilio, and Cloudinary credentials in `server.js`
+- **Fix**: Added production-only validation for Resend, Twilio, and Cloudinary credentials in `server.js`
 - **Impact**: Fail-fast behavior prevents misconfigured deployments
 
 ### 6. **Populate and Query Optimization**

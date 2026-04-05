@@ -72,7 +72,7 @@ cp .env.example .env
 # - JWT_SECRET (strong random key)
 # - SENTRY_DSN (error tracking)
 # - TWILIO credentials
-# - SendGrid API key
+# - Resend API key
 # - EMAIL_FROM (optional, defaults to noreply@klean.com)
 ```
 
@@ -274,8 +274,8 @@ JWT_REFRESH_SECRET=<generate-strong-random-32-char-string>
 JWT_EXPIRE=1h
 JWT_REFRESH_EXPIRE=7d
 
-# Email (SendGrid)
-SENDGRID_API_KEY=<sendgrid-api-key>
+# Email (Resend)
+RESEND_API_KEY=<resend-api-key>
 EMAIL_FROM=noreply@klean.com
 
 # SMS (Twilio)

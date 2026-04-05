@@ -9,7 +9,7 @@ A production-ready backend API for a multi-branch laundry management system buil
 - **Inventory Management**: Track laundry supplies with low-stock alerts
 - **Branch Management**: Multi-branch support with branch isolation
 - **HR Management**: Complete employee lifecycle, payroll processing, leave management, attendance tracking
-- **Email & SMS Notifications**: Automated notifications for orders, leaves, and system events via SendGrid and Twilio
+- **Email & SMS Notifications**: Automated notifications for orders, leaves, and system events via Resend and Twilio
 - **Analytics Dashboard**: Detailed insights and reporting
 - **API Documentation**: Swagger UI available at `/api/v1/docs`
 - **Health Checks**: `/api/v1/health` verifies service availability
@@ -55,8 +55,8 @@ CLOUD_NAME=your_cloudinary_name
 CLOUD_API_KEY=your_cloudinary_api_key
 CLOUD_API_SECRET=your_cloudinary_api_secret
 
-# SendGrid email configuration
-SENDGRID_API_KEY=your_sendgrid_api_key
+# Resend email configuration
+RESEND_API_KEY=your_resend_api_key
 EMAIL_FROM=noreply@klean.com
 
 # Twilio SMS configuration

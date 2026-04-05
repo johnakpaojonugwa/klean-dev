@@ -43,17 +43,27 @@ if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
 }
 
 // Validate external service credentials
+const resendFallback = !process.env.RESEND_API_KEY && process.env.SENDGRID_API_KEY;
+if (resendFallback) {
+    logger.warn('Using deprecated SENDGRID_API_KEY for Resend configuration. Please migrate to RESEND_API_KEY.');
+}
+
 const externalServices = {
-    SENDGRID_API_KEY: { name: 'SendGrid' },
+    RESEND_API_KEY: { name: 'Resend' },
     TWILIO_ACCOUNT_SID: { name: 'Twilio Account SID' },
     TWILIO_AUTH_TOKEN: { name: 'Twilio Auth Token' },
-    CLOUDINARY_CLOUD_NAME: { name: 'Cloudinary Cloud Name' },
-    CLOUDINARY_API_KEY: { name: 'Cloudinary API Key' },
-    CLOUDINARY_API_SECRET: { name: 'Cloudinary API Secret' }
+    CLOUD_NAME: { name: 'Cloudinary Cloud Name' },
+    CLOUD_API_KEY: { name: 'Cloudinary API Key' },
+    CLOUD_API_SECRET: { name: 'Cloudinary API Secret' }
 };
 
 const missingServices = Object.entries(externalServices)
-    .filter(([key]) => !process.env[key])
+    .filter(([key]) => {
+        if (key === 'RESEND_API_KEY' && resendFallback) {
+            return false;
+        }
+        return !process.env[key];
+    })
     .map(([_, config]) => config.name);
 
 if (missingServices.length > 0 && process.env.NODE_ENV === 'production') {

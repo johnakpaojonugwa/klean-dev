@@ -40,11 +40,11 @@ This guide helps you understand the improvements made to your Klean Backend code
    - **Read Time**: 30-45 minutes
    - **Contains**: All endpoints, request/response examples, authentication, error handling
 
-### 6. **SENDGRID_MIGRATION.md** - Email Service Migration
-   - **What**: Complete guide for SendGrid migration from Nodemailer
-   - **Best For**: Understanding email service changes, setup instructions
+### 6. **Email Service Migration** - Resend Integration Guide
+   - **What**: Email service provider migration notes and setup guidance
+   - **Best For**: Understanding the new Resend integration and email configuration
    - **Read Time**: 15-20 minutes
-   - **Contains**: Migration steps, environment setup, troubleshooting, testing guide
+   - **Contains**: Migration notes, environment setup, troubleshooting, testing guide
 
 ---
 
@@ -84,7 +84,7 @@ This guide helps you understand the improvements made to your Klean Backend code
 - [ ] Read IMPROVEMENTS_SUMMARY.md (5 min)
 - [ ] Skim CODE_REVIEW.md critical issues (5 min)
 - [ ] Look at BEFORE_AFTER_COMPARISON.md examples (5 min)
-- [ ] Check SENDGRID_MIGRATION.md for email changes (10 min)
+- [ ] Review the email migration notes for Resend setup (10 min)
 
 ### To Deploy the Code ✅
 - [ ] Follow README.md installation (5 min)
@@ -92,7 +92,7 @@ This guide helps you understand the improvements made to your Klean Backend code
 - [ ] Run npm install (3 min)
 - [ ] Test with API_TESTING_GUIDE.md (10 min)
 - [ ] Review production checklist in CODE_REVIEW.md (5 min)
-- [ ] Follow SENDGRID_MIGRATION.md for email setup (10 min)
+- [ ] Use the email migration notes in the documentation for Resend setup (10 min)
 
 ### To Learn Best Practices ✅
 - [ ] Read entire CODE_REVIEW.md (30 min)

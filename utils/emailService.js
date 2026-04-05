@@ -1,30 +1,34 @@
-import sgMail from '@sendgrid/mail';
+import Resend from 'resend';
 import { logger } from './logger.js';
 
-if (!process.env.SENDGRID_API_KEY) {
-    logger.warn('SENDGRID_API_KEY is not set. Email sending may fail.');
+const resendApiKey = process.env.RESEND_API_KEY || process.env.SENDGRID_API_KEY;
+if (!resendApiKey) {
+    logger.warn('RESEND_API_KEY is not set. Email sending may fail.');
+} else if (!process.env.RESEND_API_KEY && process.env.SENDGRID_API_KEY) {
+    logger.warn('Using deprecated SENDGRID_API_KEY for Resend configuration. Please migrate to RESEND_API_KEY.');
 }
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
+const resendClient = new Resend(resendApiKey || '');
 const defaultFrom = process.env.EMAIL_FROM || process.env.SMTP_USER || 'no-reply@klean.com';
 
-const sendEmail = async ({ to, subject, html, text }) => {
+const sendEmail = async ({ to, subject, html, text, from }) => {
     const msg = {
+        from: from || defaultFrom,
         to,
-        from: defaultFrom,
         subject,
         html,
-        text: text || (html ? html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : ''),
+        text: text || (html ? html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : undefined),
     };
-    try {
-        await sgMail.send(msg);
-        logger.info(`Email sent to ${to} (${subject})`);
-        return true;
-    } catch (error) {
-        const errMsg = error?.response?.body || error.message || error;
-        logger.error(`SendGrid email error for ${to}:`, errMsg);
+
+    const { data, error } = await resendClient.emails.send(msg);
+    
+    if (error) {
+        logger.error(`Resend email error for ${to}:`, error.message || JSON.stringify(error));
         return false;
     }
+    
+    logger.info(`Email sent to ${to} (${subject})`, { resendId: data.id });
+    return true;
 };
 
 export const emailService = {

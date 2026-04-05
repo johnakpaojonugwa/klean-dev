@@ -1,10 +1,9 @@
 /**
- * Quick SendGrid Service Path Test
+ * Quick Resend Service Path Test
  * This is a simple isolated test that validates the emailService.js code path
  * without needing the full test infrastructure / MongoDB.
  */
 
-import sgMail from '@sendgrid/mail';
 import { logger } from '../../utils/logger.js';
 
 // Mock logger to avoid file I/O
@@ -14,29 +13,32 @@ const mockLogger = {
   error: (msg) => console.error('✗ Logger.error:', msg)
 };
 
-// Mock sgMail.send to verify it gets called correctly
+// Mock Resend email path to verify it gets called correctly
 let emailSendCalled = false;
 let lastEmailPayload = null;
 
-sgMail.send = async (msg) => {
-  console.log('\n📤 sgMail.send() called with payload:');
-  console.log('   From:', msg.from);
-  console.log('   To:', msg.to);
-  console.log('   Subject:', msg.subject);
-  console.log('   HTML length:', msg.html?.length || 0, 'chars');
-  
-  emailSendCalled = true;
-  lastEmailPayload = msg;
-  
-  // Simulate success (no API call actually made)
-  console.log('   ✅ Mock send successful (no real API call)');
-  return { accepted: [msg.to] };
+const mockResendClient = {
+  emails: {
+    send: async (msg) => {
+      console.log('\n📤 Resend.emails.send() called with payload:');
+      console.log('   From:', msg.from);
+      console.log('   To:', msg.to);
+      console.log('   Subject:', msg.subject);
+      console.log('   HTML length:', msg.html?.length || 0, 'chars');
+
+      emailSendCalled = true;
+      lastEmailPayload = msg;
+
+      console.log('   ✅ Mock send successful (no real API call)');
+      return { id: 'mock-resend-id' };
+    }
+  }
 };
 
 // Test the email service helper function
 const testEmailServicePath = async () => {
-  console.log('🚀 Testing SendGrid Email Service Path\n');
-  console.log('=' .repeat(60));
+  console.log('🚀 Testing Resend Email Service Path\n');
+  console.log('='.repeat(60));
 
   const defaultFrom = 'noreply@klean.com';
   const sendEmail = async ({ to, subject, html, text }) => {
@@ -48,12 +50,12 @@ const testEmailServicePath = async () => {
       text: text || (html ? html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : ''),
     };
     try {
-      await sgMail.send(msg);
+      await mockResendClient.emails.send(msg);
       mockLogger.info(`Email sent to ${to} (${subject})`);
       return true;
     } catch (error) {
-      const errMsg = error?.response?.body || error.message || error;
-      mockLogger.error(`SendGrid email error for ${to}:`, errMsg);
+      const errMsg = error?.message || error;
+      mockLogger.error(`Resend email error for ${to}:`, errMsg);
       return false;
     }
   };
@@ -61,7 +63,7 @@ const testEmailServicePath = async () => {
   // Test case 1: Send welcome email
   console.log('\n[Test 1] sendWelcomeEmail()');
   console.log('-'.repeat(60));
-  
+
   const testUser = {
     fullname: 'John Doe',
     email: 'john@example.com',
@@ -183,8 +185,8 @@ const testEmailServicePath = async () => {
   console.log(`  Total Tests: 4`);
   console.log(`  Passed: ${[result1, result2, result3, result4].filter(r => r).length}`);
   console.log(`  Failed: ${[result1, result2, result3, result4].filter(r => !r).length}`);
-  console.log(`  SendGrid.send() called: ${emailSendCalled ? 'Yes ✅' : 'No ❌'}`);
-  
+  console.log(`  Resend.emails.send() called: ${emailSendCalled ? 'Yes ✅' : 'No ❌'}`);
+
   if (emailSendCalled && lastEmailPayload) {
     console.log(`\n✨ Last email payload received:`);
     console.log(`   From: ${lastEmailPayload.from}`);
@@ -193,7 +195,7 @@ const testEmailServicePath = async () => {
   }
 
   console.log('\n' + '='.repeat(60));
-  console.log('\n✅ All SendGrid email service paths validated successfully!\n');
+  console.log('\n✅ All Resend email service paths validated successfully!\n');
 };
 
 // Run test

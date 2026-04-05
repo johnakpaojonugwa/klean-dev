@@ -1,9 +1,9 @@
 /**
- * Manual SendGrid Email Test
- * Run with: node tests/manual/sendgrid-test.js
- * 
- * This script tests the SendGrid email service by sending a simple test email.
- * Requires SENDGRID_API_KEY and EMAIL_FROM env vars to be set.
+ * Manual Resend Email Test
+ * Run with: node tests/manual/resend-test.js
+ *
+ * This script tests the Resend email service by sending a simple test email.
+ * Requires RESEND_API_KEY and EMAIL_FROM env vars to be set.
  */
 
 import dotenv from 'dotenv';
@@ -14,10 +14,10 @@ import { logger } from '../../utils/logger.js';
 dotenv.config();
 
 const testEmail = async () => {
-  // Check if required env vars are set
-  if (!process.env.SENDGRID_API_KEY) {
-    console.error('❌ SENDGRID_API_KEY not found in environment variables');
-    console.error('   Set it in your .env file or export it before running this test');
+  const apiKey = process.env.RESEND_API_KEY || process.env.SENDGRID_API_KEY;
+  if (!apiKey) {
+    console.error('❌ RESEND_API_KEY not found in environment variables');
+    console.error('   Set RESEND_API_KEY in your .env file or export it before running this test');
     process.exit(1);
   }
 
@@ -25,12 +25,11 @@ const testEmail = async () => {
     console.warn('⚠️  EMAIL_FROM not set, using default: noreply@klean.com');
   }
 
-  console.log('🚀 Starting SendGrid Email Test...\n');
+  console.log('🚀 Starting Resend Email Test...\n');
   console.log(`📧 FROM: ${process.env.EMAIL_FROM || 'noreply@klean.com'}`);
   console.log(`📧 TO: test@example.com\n`);
 
   try {
-    // Create mock user object
     const testUser = {
       fullname: 'Test User',
       email: 'test@example.com',
@@ -48,7 +47,7 @@ const testEmail = async () => {
       process.exit(1);
     }
 
-    console.log('\n✨ SendGrid integration test completed!\n');
+    console.log('\n✨ Resend integration test completed!\n');
     process.exit(0);
   } catch (error) {
     console.error('❌ Test failed with error:', error.message);
