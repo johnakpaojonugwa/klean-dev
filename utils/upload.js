@@ -1,7 +1,9 @@
 import multer from 'multer';
 import dotenv from 'dotenv';
-import  { CloudinaryStorage } from 'multer-storage-cloudinary';
-import { v2 as cloudinary } from 'cloudinary';
+import pkg from 'multer-storage-cloudinary';
+const { CloudinaryStorage } = pkg;
+import cloudinaryPkg from 'cloudinary';
+const cloudinary = cloudinaryPkg.v2;
 
 dotenv.config();
 
@@ -14,30 +16,31 @@ cloudinary.config({
 
 // cloudinary storage config
 const storage = new CloudinaryStorage({
-    cloudinary,
-    params: (req, file) => {
+    cloudinary: cloudinary,
+    params: async (req, file) => {
         const folder = file.fieldname === 'avatar'
-        ? 'laundry-avatar'
-        : (file.fieldname === 'images' || file.fieldname === 'backCover')
-        ? 'laundry'
-        : 'default';
+            ? 'laundry-avatar'
+            : (file.fieldname === 'images' || file.fieldname === 'backCover')
+                ? 'laundry'
+                : 'default';
 
-        const allowedFormats = file.mimetype.startsWith('video/')
-        ? ['mp4', 'mov', 'avi']
-        : ['jpg', 'jpeg', 'png', 'gif', 'webp']
+        const isVideo = file.mimetype.startsWith('video/');
+        const allowedFormats = isVideo
+            ? ['mp4', 'mov', 'avi']
+            : ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
         return {
             folder: folder,
             allowed_formats: allowedFormats,
-            resource_type: file.mimetype.startsWith('video/') ? 'video' : 'image'
-        }
+            resource_type: isVideo ? 'video' : 'image'
+        };
     }
-})
+});
 
 // multer config
 const upload = multer({
     storage,
-    limits: {fileSize: 1024 * 1024 * 5}, 
+    limits: { fileSize: 1024 * 1024 * 5 },
     fileFilter(req, file, cb) {
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/mov', 'video/avi']
 
@@ -50,9 +53,9 @@ const upload = multer({
     },
 
 }).fields([
-    {name: 'avatar'},
-    {name: 'backCover'},
-    {name: 'images', maxCount: 10},
+    { name: 'avatar' },
+    { name: 'backCover' },
+    { name: 'images', maxCount: 10 },
 ])
 
 // Middleware to handle file upload
@@ -62,7 +65,7 @@ const uploadMiddleware = (req, res, next) => {
             return res.status(400).json({ message: "File upload error", error: err.message })
         }
         if (err) {
-            res.status(400).json({ message: "File upload error", error: err.message || 'Unknown error'})
+            res.status(400).json({ message: "File upload error", error: err.message || 'Unknown error' })
         }
         next()
     })

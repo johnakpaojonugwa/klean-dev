@@ -199,7 +199,7 @@ if (process.env.NODE_ENV === 'production') {
 // Global error handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
     logger.info(`🚀 Server is running on port http://localhost:${PORT}`);
 });
