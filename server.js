@@ -201,7 +201,10 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
-    logger.info(`🚀 Server is running on port http://localhost:${PORT}`);
+    const message = process.env.NODE_ENV === 'production'
+        ? `🚀 Server is live on port ${PORT}`
+        : `🚀 Server is running on port http://localhost:${PORT}`;
+    logger.info(message);
 });
 
 // Graceful shutdown handler
