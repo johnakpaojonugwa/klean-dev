@@ -1,4 +1,4 @@
-import Resend from 'resend';
+import {Resend} from 'resend';
 import { logger } from './logger.js';
 
 const resendApiKey = process.env.RESEND_API_KEY || process.env.SENDGRID_API_KEY;
