@@ -122,8 +122,8 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(requestLogger);
 
 // CORS configuration 
-const corsOrigin = process.env.NODE_ENV === 'production' 
-    ? (process.env.CORS_ORIGIN || 'https://klean-app.vercel.app', 'http://localhost:5173')
+const corsOrigin = process.env.NODE_ENV === 'production'
+    ? [process.env.CORS_ORIGIN, 'https://klean-app.vercel.app', 'http://localhost:5173'].filter(Boolean)
     : process.env.CORS_ORIGIN || '*';
 
 app.use(cors({
@@ -139,6 +139,11 @@ app.use((req, res, next) => {
     req.setTimeout(parseInt(process.env.REQUEST_TIMEOUT || '30000'));
     res.setTimeout(parseInt(process.env.REQUEST_TIMEOUT || '30000'));
     next();
+});
+
+// API root endpoint
+app.get('/', (req, res) => {
+    res.send('<h1>Klean Enterprise API</h1><p>Status: Online</p>')
 });
 
 // Health check route
@@ -210,18 +215,18 @@ const server = app.listen(PORT, () => {
 // Graceful shutdown handler
 const gracefulShutdown = async (signal) => {
     logger.warn(`\n${signal} received. Starting graceful shutdown...`);
-    
+
     server.close(() => {
         logger.info('HTTP server closed');
     });
-    
+
     try {
         await mongoose.connection.close(false);
         logger.info('MongoDB connection closed');
     } catch (err) {
         logger.error('Error closing MongoDB connection:', err.message);
     }
-    
+
     setTimeout(() => {
         logger.error('Forceful shutdown triggered after 10 seconds');
         process.exit(1);
