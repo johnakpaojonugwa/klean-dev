@@ -27,10 +27,10 @@ router.patch('/:userId/status', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER')
 router.get('/me', auth, asyncHandler(getSingleUser)); // Get own profile
 // Route to get single user by ID (for admins/managers)
 router.get('/:userId', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getSingleUser));
-//Route to update user
-router.put('/:userId', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), uploadMiddleware, asyncHandler(updateUser));
 // Route to update own profile
 router.put('/me', auth, uploadMiddleware, asyncHandler(updateOwnProfile));
+//Route to update user
+router.put('/:userId', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), uploadMiddleware, asyncHandler(updateUser));
 // Route to delete user
 router.delete('/:userId', auth, authorize('SUPER_ADMIN'), asyncHandler(deleteUser));
 

@@ -378,6 +378,13 @@ export const getSingleUser = async (req, res, next) => {
     try {
         const targetId = req.params.userId || req.user.id;
 
+        if (!mongoose.Types.ObjectId.isValid(targetId)) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "Invalid User ID format" 
+        });
+    }
+
         const user = await User.findById(targetId).select("-password").populate("branchId", "name");
 
         if (!user) {
@@ -411,6 +418,13 @@ export const getSingleUser = async (req, res, next) => {
 export const updateUser = async (req, res, next) => {
     try {
         const { userId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "Invalid User ID format" 
+        });
+    }
         const { fullname, email, phoneNumber, address, role, designation, department, branchId } = req.body;
         const avatar = req.files?.avatar?.[0]?.path;
 
@@ -514,18 +528,20 @@ export const deleteUser = async (req, res, next) => {
 // Update own profile (for logged-in users)
 export const updateOwnProfile = async (req, res, next) => {
     try {
-        const { fullname, email, phoneNumber, address } = req.body;
+        const body = req.body || {};
+        const { fullname, email, phoneNumber, address } = body;
+        
         const avatar = req.files?.avatar?.[0]?.path;
 
         const user = await User.findById(req.user.id);
         if (!user) return sendError(res, 404, "User not found");
 
         const updates = {};
-        // Only allow safe fields to be updated by the user themselves
-        if (fullname) updates.fullname = fullname.trim();
-        if (email) updates.email = email.trim().toLowerCase();
-        if (phoneNumber) updates.phoneNumber = phoneNumber.trim();
-        if (address) updates.address = address.trim();
+        
+        if (fullname?.trim()) updates.fullname = fullname.trim();
+        if (email?.trim()) updates.email = email.trim().toLowerCase();
+        if (phoneNumber?.trim()) updates.phoneNumber = phoneNumber.trim();
+        if (address?.trim()) updates.address = address.trim();
         if (avatar) updates.avatar = avatar;
 
         if (Object.keys(updates).length === 0) {
@@ -535,15 +551,8 @@ export const updateOwnProfile = async (req, res, next) => {
         Object.assign(user, updates);
         await user.save();
 
-        logger.info(`User ${req.user.id} updated their own profile`);
-
         return sendResponse(res, 200, true, "Profile updated successfully", { user });
     } catch (error) {
-        // Handle Mongoose Duplicate Key Error (e.g., email/phone already exists)
-        if (error.code === 11000) {
-            return sendError(res, 400, "Email or Phone number already in use");
-        }
-        logger.error("Update own profile error:", error.message);
-        next(error);
+        next(error); 
     }
 };
