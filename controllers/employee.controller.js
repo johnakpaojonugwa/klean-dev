@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import Employee from "../models/employee.model.js";
 import User from "../models/user.model.js";
+import Payroll from "../models/payroll.model.js";
+import Leave from "../models/leave.model.js";
 import { sendResponse, sendError } from "../utils/response.js";
 import { logger } from "../utils/logger.js";
 import { isValidEmail, isStrongPassword, sanitizeInput, isValidObjectId } from "../utils/validators.js";
@@ -374,9 +376,6 @@ export const deleteEmployee = async (req, res, next) => {
         }
 
         // Check for orphaned payroll/leave records before deletion
-        const Payroll = require('../models/payroll.model.js').default;
-        const Leave = require('../models/leave.model.js').default;
-
         const payrollCount = await Payroll.countDocuments({ employeeId });
         const leaveCount = await Leave.countDocuments({ employeeId });
 

@@ -2,6 +2,8 @@ import cron from 'node-cron';
 import { logger } from '../utils/logger.js';
 import { notificationService } from '../services/notificationService.js';
 import { analyticsService } from '../services/analyticsService.js';
+import Order from '../models/order.model.js';
+import Notification from '../models/notification.model.js';
 
 /**
  * Retry helper for scheduled jobs with exponential backoff
@@ -62,8 +64,6 @@ export const initializeScheduledJobs = () => {
         logger.info('Sending payment reminders...');
         await executeJobWithRetry(
             async () => {
-                const Order = require('../models/order.model.js').default;
-                
                 // Find unpaid orders that are ready
                 const readyOrders = await Order.find({
                     status: 'READY',
@@ -86,7 +86,6 @@ export const initializeScheduledJobs = () => {
         logger.info('Cleaning up old notifications...');
         await executeJobWithRetry(
             async () => {
-                const Notification = require('../models/notification.model.js').default;
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
