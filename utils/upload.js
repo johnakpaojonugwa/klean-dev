@@ -1,9 +1,7 @@
 import multer from 'multer';
 import dotenv from 'dotenv';
-import cloudinaryStoragePkg from 'multer-storage-cloudinary';
-const CloudinaryStorage = cloudinaryStoragePkg;
-import cloudinaryPkg from 'cloudinary';
-const cloudinary = cloudinaryPkg.v2;
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import { v2 as cloudinary } from 'cloudinary';  
 
 dotenv.config();
 
@@ -63,7 +61,7 @@ const upload = multer({
 const uploadMiddleware = (req, res, next) => {
     upload(req, res, (err) => {
         if (err) {
-            console.error("Multer/Cloudinary Error:", err.message);
+            console.error("Upload Error Details:", err);
 
             if (err instanceof multer.MulterError) {
                 return res.status(400).json({ 
