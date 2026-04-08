@@ -1,7 +1,11 @@
 import multer from 'multer';
 import dotenv from 'dotenv';
-import { cloudinaryStorage } from 'multer-storage-cloudinary';
-import { v2 as cloudinary } from 'cloudinary';  
+import pkg from 'multer-storage-cloudinary';
+const { CloudinaryStorage } = pkg;
+
+import { v2 as cloudinary } from 'cloudinary';
+
+dotenv.config();
 
 dotenv.config();
 
@@ -14,7 +18,7 @@ cloudinary.config({
 })
 
 // cloudinary storage config
-const storage = new cloudinaryStorage({
+const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: async (req, file) => {
         const folder = file.fieldname === 'avatar'
