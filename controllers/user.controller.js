@@ -554,7 +554,6 @@ export const updateOwnProfile = async (req, res, next) => {
         logger.info("User updated own profile", { userId: req.user.id });
         return sendResponse(res, 200, true, "Profile updated successfully", { user });
 
-        return sendResponse(res, 200, true, "Profile updated successfully", { user });
     } catch (error) {
         if (error.code === 11000) {
             return sendError(res, 400, "Email or Phone number already in use");
