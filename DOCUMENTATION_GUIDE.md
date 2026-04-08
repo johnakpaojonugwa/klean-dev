@@ -8,7 +8,7 @@ This guide helps you understand the improvements made to your Klean Backend code
 
 ## 📖 Documents Overview
 
-> These documents have been updated to reflect the latest backend changes, including refresh token security, production startup validation, health checks, and query optimizations.
+> These documents have been updated to reflect the latest backend changes, including refresh token security, production startup validation, health checks, query optimizations, and new user self-management features.
 
 ### 1. **IMPROVEMENTS_SUMMARY.md** ⭐ START HERE
    - **What**: Complete review summary
@@ -40,7 +40,13 @@ This guide helps you understand the improvements made to your Klean Backend code
    - **Read Time**: 30-45 minutes
    - **Contains**: All endpoints, request/response examples, authentication, error handling
 
-### 6. **Email Service Migration** - Resend Integration Guide
+### 6. **API_ENDPOINTS.json** - Machine-Readable API Spec
+   - **What**: JSON specification of all API endpoints
+   - **Best For**: Automated testing, API clients, documentation generation
+   - **Read Time**: N/A (machine readable)
+   - **Contains**: Complete endpoint specifications with validation rules
+
+### 7. **Email Service Migration** - Resend Integration Guide
    - **What**: Email service provider migration notes and setup guidance
    - **Best For**: Understanding the new Resend integration and email configuration
    - **Read Time**: 15-20 minutes
@@ -52,14 +58,15 @@ This guide helps you understand the improvements made to your Klean Backend code
 
 ### 👨‍💼 Project Manager / Product Owner
 1. **IMPROVEMENTS_SUMMARY.md** - Overview of improvements
-2. **README.md** - Feature list and API endpoints
+2. **README.md** - Feature list and API endpoints (includes new user self-management features)
 3. **CODE_REVIEW.md** - Quality metrics and checklist
 
 ### 👨‍💻 Developer (Using This Code)
 1. **README.md** - Installation and setup
 2. **IMPROVEMENTS_SUMMARY.md** - What changed
-3. **API_TESTING_GUIDE.md** - How to test
-4. **CODE_REVIEW.md** - Security and architecture details
+3. **API_TESTING_GUIDE.md** - How to test (includes new endpoints)
+4. **API_REFERENCE.md** - Complete endpoint documentation (includes user self-management)
+5. **CODE_REVIEW.md** - Security and architecture details
 
 ### 🔐 Security Auditor
 1. **CODE_REVIEW.md** - Security improvements section
@@ -85,6 +92,7 @@ This guide helps you understand the improvements made to your Klean Backend code
 - [ ] Skim CODE_REVIEW.md critical issues (5 min)
 - [ ] Look at BEFORE_AFTER_COMPARISON.md examples (5 min)
 - [ ] Review the email migration notes for Resend setup (10 min)
+- [ ] Check API_REFERENCE.md for new user self-management endpoints (5 min)
 
 ### To Deploy the Code ✅
 - [ ] Follow README.md installation (5 min)
@@ -93,6 +101,7 @@ This guide helps you understand the improvements made to your Klean Backend code
 - [ ] Test with API_TESTING_GUIDE.md (10 min)
 - [ ] Review production checklist in CODE_REVIEW.md (5 min)
 - [ ] Use the email migration notes in the documentation for Resend setup (10 min)
+- [ ] Test new user self-management endpoints (PUT /users/me, PATCH /auth/change-password)
 
 ### To Learn Best Practices ✅
 - [ ] Read entire CODE_REVIEW.md (30 min)

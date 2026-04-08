@@ -123,7 +123,27 @@ Authorization: Bearer <accessToken>
   }
   ```
 
-### 7. Health Check
+### 7. Change Password
+- **Method:** `PATCH`
+- **Path:** `/auth/change-password`
+- **Auth Required:** ✅ Yes
+- **Body:**
+  ```json
+  {
+    "currentPassword": "OldSecurePass123!",
+    "newPassword": "NewSecurePass123!",
+    "confirmPassword": "NewSecurePass123!"
+  }
+  ```
+- **Response:** `200`
+  ```json
+  {
+    "success": true,
+    "message": "Password changed successfully"
+  }
+  ```
+
+### 8. Health Check
 - **Method:** `GET`
 - **Path:** `/health`
 - **Auth Required:** ❌ No
@@ -135,7 +155,7 @@ Authorization: Bearer <accessToken>
   }
   ```
 
-### 8. API Docs
+### 9. API Docs
 - **Method:** `GET`
 - **Path:** `/docs`
 - **Auth Required:** ❌ No
@@ -192,13 +212,28 @@ Authorization: Bearer <accessToken>
 - **Auth Required:** ✅ Yes
 - **Roles:** `SUPER_ADMIN`, `BRANCH_MANAGER`
 
-### 7. Soft Delete User
+### 7. Update Own Profile
+- **Method:** `PUT`
+- **Path:** `/users/me`
+- **Auth Required:** ✅ Yes
+- **Body:** (multipart/form-data for avatar)
+  ```json
+  {
+    "fullname": "John Doe Updated",
+    "email": "john.updated@example.com",
+    "phoneNumber": "+1234567890",
+    "address": "123 New St, City, State"
+  }
+  ```
+- **Notes:** Avatar can be uploaded as a file. Only safe fields can be updated by the user themselves.
+
+### 8. Soft Delete User
 - **Method:** `PATCH`
 - **Path:** `/users/:userId/status`
 - **Auth Required:** ✅ Yes
 - **Roles:** `SUPER_ADMIN`, `BRANCH_MANAGER`
 
-### 8. Delete User
+### 9. Delete User
 - **Method:** `DELETE`
 - **Path:** `/users/:userId`
 - **Auth Required:** ✅ Yes

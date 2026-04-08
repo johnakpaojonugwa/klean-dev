@@ -6,7 +6,8 @@ import {
     getSingleUser,
     updateUser,
     softDelete,
-    deleteUser
+    deleteUser,
+    updateOwnProfile
 } from "../controllers/user.controller.js";
 import uploadMiddleware from "../utils/upload.js";
 import { auth, authorize } from "../middlewares/authMiddleware.js";
@@ -28,6 +29,8 @@ router.get('/me', auth, asyncHandler(getSingleUser)); // Get own profile
 router.get('/:userId', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getSingleUser));
 //Route to update user
 router.put('/:userId', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), uploadMiddleware, asyncHandler(updateUser));
+// Route to update own profile
+router.put('/me', auth, uploadMiddleware, asyncHandler(updateOwnProfile));
 // Route to delete user
 router.delete('/:userId', auth, authorize('SUPER_ADMIN'), asyncHandler(deleteUser));
 

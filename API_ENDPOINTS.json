@@ -2,7 +2,7 @@
   "version": "2.0",
   "baseURL": "http://localhost:3000/api/v1",
   "authentication": "JWT Bearer Token in Authorization header",
-  "lastUpdated": "2026-04-04",
+  "lastUpdated": "2026-04-08",
   "endpoints": {
     "Dashboard": {
       "getDashboardSummary": {
@@ -156,6 +156,20 @@
           "password": "string (min 8 chars)",
           "confirmPassword": "string"
         }
+      },
+      "changePassword": {
+        "method": "PATCH",
+        "path": "/auth/change-password",
+        "auth": true,
+        "body": {
+          "currentPassword": "string",
+          "newPassword": "string (min 8 chars, uppercase, lowercase, number, special char)",
+          "confirmPassword": "string"
+        },
+        "response": {
+          "success": "boolean",
+          "message": "string"
+        }
       }
     },
     "System": {
@@ -220,6 +234,23 @@
         "auth": true,
         "roles": ["SUPER_ADMIN", "BRANCH_MANAGER"],
         "pathParams": { "userId": "string" }
+      },
+      "updateOwnProfile": {
+        "method": "PUT",
+        "path": "/users/me",
+        "auth": true,
+        "body": {
+          "fullname": "string (optional)",
+          "email": "email (optional)",
+          "phoneNumber": "string (optional)",
+          "address": "string (optional)",
+          "avatar": "file (optional)"
+        },
+        "response": {
+          "success": "boolean",
+          "message": "string",
+          "user": "object"
+        }
       },
       "softDeleteUser": {
         "method": "PATCH",

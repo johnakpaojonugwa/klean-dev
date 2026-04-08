@@ -1,6 +1,6 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { login, register, refreshToken, logout, forgotPassword, resetPassword } from '../controllers/auth.controller.js';
+import { login, register, refreshToken, logout, forgotPassword, resetPassword, changePassword } from '../controllers/auth.controller.js';
 import uploadMiddleware from '../utils/upload.js';
 import { validateRegister, validateLogin } from '../middlewares/validationMiddleware.js';
 import { auth } from '../middlewares/authMiddleware.js';
@@ -22,4 +22,5 @@ router.post('/refresh-token', refreshTokenLimiter, asyncHandler(refreshToken));
 router.post('/logout', auth, asyncHandler(logout));
 router.post('/forgot-password', asyncHandler(forgotPassword));
 router.patch('/reset-password/:token', asyncHandler(resetPassword));
+router.patch('/change-password', auth, asyncHandler(changePassword));
 export default router;  

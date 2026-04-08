@@ -83,12 +83,32 @@ curl -X POST http://localhost:3000/api/v1/auth/refresh-token \
 ```
 > Note: The refresh-token endpoint is rate limited to 3 requests per 15 minutes.
 
-### 4. API Docs
+### 4. Change Password (Logged-in Users)
+```bash
+curl -X PATCH http://localhost:3000/api/v1/auth/change-password \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "currentPassword": "SecurePass123!",
+    "newPassword": "NewSecurePass456!",
+    "confirmPassword": "NewSecurePass456!"
+  }'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Password changed successfully"
+}
+```
+
+### 5. API Docs
 ```bash
 curl http://localhost:3000/api/v1/docs
 ```
 
-### 5. Health Check
+### 6. Health Check
 ```bash
 curl http://localhost:3000/api/v1/health
 ```
@@ -101,6 +121,47 @@ curl http://localhost:3000/api/v1/health
 ```bash
 curl http://localhost:3000/api/v1/users \
   -H "Authorization: Bearer <access_token>"
+```
+
+### Get Own Profile
+```bash
+curl http://localhost:3000/api/v1/users/me \
+  -H "Authorization: Bearer <access_token>"
+```
+
+### Update Own Profile (Avatar, Name, Email, Phone, Address)
+```bash
+# For text fields only
+curl -X PUT http://localhost:3000/api/v1/users/me \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fullname": "John Doe Updated",
+    "email": "john.updated@example.com",
+    "phoneNumber": "+1234567890",
+    "address": "123 New Street, City, State"
+  }'
+
+# For avatar upload (use form-data)
+curl -X PUT http://localhost:3000/api/v1/users/me \
+  -H "Authorization: Bearer <access_token>" \
+  -F "avatar=@/path/to/avatar.jpg"
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Profile updated successfully",
+  "data": {
+    "user": {
+      "_id": "...",
+      "fullname": "John Doe Updated",
+      "email": "john.updated@example.com",
+      "avatar": "https://cloudinary.com/.../avatar.jpg"
+    }
+  }
+}
 ```
 
 ### Get Single User

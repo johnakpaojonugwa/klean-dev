@@ -510,3 +510,40 @@ export const deleteUser = async (req, res, next) => {
         next(error);
     }
 };
+
+// Update own profile (for logged-in users)
+export const updateOwnProfile = async (req, res, next) => {
+    try {
+        const { fullname, email, phoneNumber, address } = req.body;
+        const avatar = req.files?.avatar?.[0]?.path;
+
+        const user = await User.findById(req.user.id);
+        if (!user) return sendError(res, 404, "User not found");
+
+        const updates = {};
+        // Only allow safe fields to be updated by the user themselves
+        if (fullname) updates.fullname = fullname.trim();
+        if (email) updates.email = email.trim().toLowerCase();
+        if (phoneNumber) updates.phoneNumber = phoneNumber.trim();
+        if (address) updates.address = address.trim();
+        if (avatar) updates.avatar = avatar;
+
+        if (Object.keys(updates).length === 0) {
+            return sendError(res, 400, "No changes detected");
+        }
+
+        Object.assign(user, updates);
+        await user.save();
+
+        logger.info(`User ${req.user.id} updated their own profile`);
+
+        return sendResponse(res, 200, true, "Profile updated successfully", { user });
+    } catch (error) {
+        // Handle Mongoose Duplicate Key Error (e.g., email/phone already exists)
+        if (error.code === 11000) {
+            return sendError(res, 400, "Email or Phone number already in use");
+        }
+        logger.error("Update own profile error:", error.message);
+        next(error);
+    }
+};

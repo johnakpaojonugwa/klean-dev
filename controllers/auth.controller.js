@@ -351,3 +351,53 @@ export const resetPassword = async (req, res, next) => {
         next(error);
     }
 };
+
+// Change Password (for logged-in users)
+export const changePassword = async (req, res, next) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        // Validation
+        const errors = [];
+        if (!currentPassword) {
+            errors.push("Current password is required");
+        }
+        if (!newPassword || !isStrongPassword(newPassword)) {
+            errors.push("New password must be at least 8 characters with uppercase, number, and special character");
+        }
+        if (newPassword !== confirmPassword) {
+            errors.push("New passwords do not match");
+        }
+        if (currentPassword === newPassword) {
+            errors.push("New password must be different from current password");
+        }
+
+        if (errors.length > 0) {
+            return sendError(res, 400, "Validation failed", errors);
+        }
+
+        // Find user
+        const user = await User.findById(req.user.id).select('+password');
+        if (!user) {
+            return sendError(res, 404, "User not found");
+        }
+
+        // Verify current password
+        const isMatch = await user.comparePassword(currentPassword);
+        if (!isMatch) {
+            logger.warn(`Failed password change attempt for user: ${user.email}`);
+            return sendError(res, 401, "Current password is incorrect");
+        }
+
+        // Update password (pre-save hook will hash it)
+        user.password = newPassword;
+        await user.save();
+
+        logger.info(`Password changed successfully for user: ${user.email}`);
+
+        return sendResponse(res, 200, true, "Password changed successfully");
+    } catch (error) {
+        logger.error("Change password error:", error.message);
+        next(error);
+    }
+};

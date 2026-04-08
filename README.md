@@ -5,6 +5,7 @@ A production-ready backend API for a multi-branch laundry management system buil
 ## 🚀 Features
 
 - **User Management**: RBAC (Role-Based Access Control) with 4 roles: SUPER_ADMIN, BRANCH_MANAGER, STAFF, CUSTOMER
+- **Profile Management**: Users can update their own profile (avatar, name, email, phone, address) and change password
 - **Order Management**: Complete order lifecycle from creation to delivery
 - **Inventory Management**: Track laundry supplies with low-stock alerts
 - **Branch Management**: Multi-branch support with branch isolation
@@ -159,11 +160,14 @@ Authorization: Bearer <access_token>
 - `POST /api/v1/auth/login` - Login user
 - `POST /api/v1/auth/refresh-token` - Refresh access token
 - `POST /api/v1/auth/logout` - Logout (protected)
+- `PATCH /api/v1/auth/change-password` - Change password (protected)
 
 ### Users
 - `GET /api/v1/users` - Get all users (SUPER_ADMIN, BRANCH_MANAGER)
+- `GET /api/v1/users/me` - Get own profile (protected)
 - `GET /api/v1/users/:userId` - Get single user (protected)
 - `PUT /api/v1/users/:userId` - Update user (SUPER_ADMIN, BRANCH_MANAGER)
+- `PUT /api/v1/users/me` - Update own profile (protected)
 - `DELETE /api/v1/users/:userId` - Delete user (SUPER_ADMIN)
 
 ### Orders
@@ -288,13 +292,9 @@ The API uses standardized HTTP status codes:
 ## 🔄 Future Enhancements
 
 - [ ] Payment integration (Stripe, Paystack)
-- [ ] Email notifications
-- [ ] SMS notifications
-- [ ] Analytics dashboard
-- [ ] Automated low-stock alerts
-- [ ] Service pricing module
-- [ ] Customer reviews & ratings
 - [ ] Advanced reporting
+- [ ] Customer reviews & ratings
+- [ ] Service pricing module
 
 ## 📞 Support
 
