@@ -21,16 +21,16 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), uploadMiddlew
 router.get('/', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getAllUsers));
 // Route to get all customers
 router.get('/customers', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER', 'STAFF'), asyncHandler(getCustomers));
-// Soft Delete
-router.patch('/:userId/status', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(softDelete));
 // Route to get singleUser
 router.get('/me', auth, asyncHandler(getSingleUser)); // Get own profile
-// Route to get single user by ID (for admins/managers)
-router.get('/:userId', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getSingleUser));
 // Route to update own profile
 router.put('/me', auth, uploadMiddleware, asyncHandler(updateOwnProfile));
+// Route to get single user by ID (for admins/managers)
+router.get('/:userId', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getSingleUser));
 //Route to update user
 router.put('/:userId', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), uploadMiddleware, asyncHandler(updateUser));
+// Soft Delete
+router.patch('/:userId/status', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(softDelete));
 // Route to delete user
 router.delete('/:userId', auth, authorize('SUPER_ADMIN'), asyncHandler(deleteUser));
 
