@@ -202,6 +202,8 @@ export const updateEmployee = async (req, res, next) => {
     try {
         const { employeeId } = req.params;
         if (!isValidObjectId(employeeId)) {
+            await session.abortTransaction();
+            session.endSession();
             return sendError(res, 400, "Invalid employee ID format");
         }
 
@@ -277,6 +279,7 @@ export const updateEmployee = async (req, res, next) => {
         }
 
         await session.commitTransaction();
+        session.endSession();
         logger.info(`Employee & User synced for: ${updatedEmployee.employeeNumber}`);
 
         return sendResponse(res, 200, true, "Employee updated successfully", {
@@ -284,9 +287,16 @@ export const updateEmployee = async (req, res, next) => {
         });
 
     } catch (error) {
-        await session.abortTransaction();
+        if (session.inAtomicityMode()) {
+            await session.abortTransaction();
+        }
+
         logger.error("Update employee error:", error.message);
-        next(error);
+
+        if (!res.headersSent) {
+            next(error);
+        }
+
     } finally {
         session.endSession();
     }

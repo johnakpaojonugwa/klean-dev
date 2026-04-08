@@ -11,7 +11,8 @@ dotenv.config();
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
     api_key: process.env.CLOUD_API_KEY,
-    api_secret: process.env.CLOUD_API_SECRET
+    api_secret: process.env.CLOUD_API_SECRET,
+    timeout: 60000
 })
 
 // cloudinary storage config
@@ -61,13 +62,25 @@ const upload = multer({
 // Middleware to handle file upload
 const uploadMiddleware = (req, res, next) => {
     upload(req, res, (err) => {
-        if (err instanceof multer.MulterError) {
-            return res.status(400).json({ message: "File upload error", error: err.message })
-        }
         if (err) {
-            res.status(400).json({ message: "File upload error", error: err.message || 'Unknown error' })
+            console.error("Multer/Cloudinary Error:", err.message);
+
+            if (err instanceof multer.MulterError) {
+                return res.status(400).json({ 
+                    success: false,
+                    message: "File upload error", 
+                    error: err.message 
+                });
+            }
+            
+            return res.status(400).json({ 
+                success: false,
+                message: "File upload error", 
+                error: err.message || 'Unknown error' 
+            });
         }
-        next()
-    })
-}
+
+        next();
+    });
+};
 export default uploadMiddleware;
