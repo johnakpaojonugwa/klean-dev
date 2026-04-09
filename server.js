@@ -78,14 +78,7 @@ if (process.env.NODE_ENV === 'production') {
         dsn: process.env.SENTRY_DSN,
         environment: process.env.NODE_ENV,
         tracesSampleRate: 0.1,
-        integrations: [
-            new Sentry.Integrations.Http({ tracing: true }),
-            new Sentry.Integrations.Express({
-                request: true,
-                serverName: true,
-                version: true
-            })
-        ]
+        integrations: []
     });
 }
 
@@ -93,7 +86,7 @@ const app = express();
 
 // Sentry request handler
 if (process.env.NODE_ENV === 'production') {
-    app.use(Sentry.Handlers.requestHandler());
+    Sentry.setupExpressErrorHandler(app);
 }
 
 // Security Middleware
@@ -198,7 +191,7 @@ app.use(logErrorContext);
 
 // Sentry error handler 
 if (process.env.NODE_ENV === 'production') {
-    app.use(Sentry.Handlers.errorHandler());
+    app.use(Sentry.expressErrorHandler());
 }
 
 // Global error handler
