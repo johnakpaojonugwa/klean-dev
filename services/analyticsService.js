@@ -10,8 +10,8 @@ const getBranchMatch = (branchId) => {
     if (branchId && mongoose.Types.ObjectId.isValid(branchId)) {
         const objId = new mongoose.Types.ObjectId(branchId);
         // This ensures that whether the DB has a String or an ObjectId, we find it.
-        return { 
-            branchId: { $in: [objId, branchId.toString()] } 
+        return {
+            branchId: { $in: [objId, branchId.toString()] }
         };
     }
     return {};
@@ -20,25 +20,25 @@ const getBranchMatch = (branchId) => {
 export const analyticsService = {
     // GENERATE DAILY ANALYTICS
     generateDailyAnalytics: async (dateInput = new Date(), branchId = null) => {
-    try {
-        // Check Redis cache first (10 minute TTL)
-        const date = new Date(dateInput);
-        const dateStr = date.toISOString().split('T')[0];
-        const cacheKey = `daily_analytics:${dateStr}:${branchId || 'all'}`;
-        const cachedResult = await redisService.get(cacheKey);
-        
-        if (cachedResult) {
-            logger.debug(`Cache hit for daily analytics: ${cacheKey}`);
-            return JSON.parse(cachedResult);
-        }
+        try {
+            // Check Redis cache first (10 minute TTL)
+            const date = new Date(dateInput);
+            const dateStr = date.toISOString().split('T')[0];
+            const cacheKey = `daily_analytics:${dateStr}:${branchId || 'all'}`;
+            const cachedResult = await redisService.get(cacheKey);
 
-        const startOfDay = new Date(date.setUTCHours(0, 0, 0, 0));
-        const endOfDay = new Date(date.setUTCHours(23, 59, 59, 999));
+            if (cachedResult) {
+                logger.debug(`Cache hit for daily analytics: ${cacheKey}`);
+                return JSON.parse(cachedResult);
+            }
 
-        const matchStage = {
-            createdAt: { $gte: startOfDay, $lte: endOfDay },
-            ...getBranchMatch(branchId)
-        };
+            const startOfDay = new Date(date.setUTCHours(0, 0, 0, 0));
+            const endOfDay = new Date(date.setUTCHours(23, 59, 59, 999));
+
+            const matchStage = {
+                createdAt: { $gte: startOfDay, $lte: endOfDay },
+                ...getBranchMatch(branchId)
+            };
 
             const orderMetrics = await Order.aggregate([
                 { $match: matchStage },
@@ -108,110 +108,110 @@ export const analyticsService = {
 
     // GET DASHBOARD SUMMARY
     getDashboardSummary: async (branchId = null) => {
-    try {
-        const cacheKey = redisService.getAnalyticsKey('dashboard', { branchId });
-        const cacheTTL = 300; // 5 minutes cache
+        try {
+            const cacheKey = redisService.getAnalyticsKey('dashboard', { branchId });
+            const cacheTTL = 300; // 5 minutes cache
 
-        return await redisService.getOrSet(cacheKey, async () => {
-            const todayStr = new Date().toISOString().split('T')[0];
-            const today = new Date(`${todayStr}T00:00:00Z`);
+            return await redisService.getOrSet(cacheKey, async () => {
+                const todayStr = new Date().toISOString().split('T')[0];
+                const today = new Date(`${todayStr}T00:00:00Z`);
 
-            const branchQuery = (branchId && mongoose.Types.ObjectId.isValid(branchId)) ? { _id: branchId } : {};
-            const branches = await Branch.find(branchQuery).select('totalRevenue totalOrders name').lean();
+                const branchQuery = (branchId && mongoose.Types.ObjectId.isValid(branchId)) ? { _id: branchId } : {};
+                const branches = await Branch.find(branchQuery).select('totalRevenue totalOrders name').lean();
 
-            const orderMatch = getBranchMatch(branchId);
-            
-            // Combine live order stats and pending count in single aggregation
-            const [aggregatedStats] = await Order.aggregate([
-                { $match: orderMatch },
-                {
-                    $facet: {
-                        liveStats: [
-                            {
-                                $group: {
-                                    _id: null,
-                                    totalOrders: { $sum: 1 },
-                                    totalRevenue: { $sum: { $cond: [{ $eq: ["$paymentStatus", "PAID"] }, "$totalAmount", 0] } }
-                                }
-                            }
-                        ],
-                        pendingCount: [
-                            { $match: { status: { $in: ['PENDING', 'PROCESSING', 'WASHING', 'DRYING', 'IRONING'] } } },
-                            { $count: "count" }
-                        ],
-                        // NEW: Calculate branch leaderboard when branchId is null
-                        ...(branchId === null ? {
-                            branchLeaderboard: [
-                                {
-                                    $match: {
-                                        paymentStatus: "PAID",
-                                        branchId: { $exists: true, $ne: null }
-                                    }
-                                },
+                const orderMatch = getBranchMatch(branchId);
+
+                // Combine live order stats and pending count in single aggregation
+                const [aggregatedStats] = await Order.aggregate([
+                    { $match: orderMatch },
+                    {
+                        $facet: {
+                            liveStats: [
                                 {
                                     $group: {
-                                        _id: "$branchId",
-                                        totalRevenue: { $sum: "$totalAmount" },
-                                        totalOrders: { $sum: 1 }
+                                        _id: null,
+                                        totalOrders: { $sum: 1 },
+                                        totalRevenue: { $sum: { $cond: [{ $eq: ["$paymentStatus", "PAID"] }, "$totalAmount", 0] } }
                                     }
-                                },
-                                {
-                                    $lookup: {
-                                        from: "branches",
-                                        localField: "_id",
-                                        foreignField: "_id",
-                                        as: "branchInfo"
-                                    }
-                                },
-                                {
-                                    $unwind: "$branchInfo"
-                                },
-                                {
-                                    $project: {
-                                        branchId: "$_id",
-                                        name: "$branchInfo.name",
-                                        totalRevenue: 1,
-                                        totalOrders: 1
-                                    }
-                                },
-                                {
-                                    $sort: { totalRevenue: -1 }
                                 }
-                            ]
-                        } : {})
+                            ],
+                            pendingCount: [
+                                { $match: { status: { $in: ['PENDING', 'PROCESSING', 'WASHING', 'DRYING', 'IRONING'] } } },
+                                { $count: "count" }
+                            ],
+                            // NEW: Calculate branch leaderboard when branchId is null
+                            ...(branchId === null ? {
+                                branchLeaderboard: [
+                                    {
+                                        $match: {
+                                            paymentStatus: "PAID",
+                                            branchId: { $exists: true, $ne: null }
+                                        }
+                                    },
+                                    {
+                                        $group: {
+                                            _id: "$branchId",
+                                            totalRevenue: { $sum: "$totalAmount" },
+                                            totalOrders: { $sum: 1 }
+                                        }
+                                    },
+                                    {
+                                        $lookup: {
+                                            from: "branches",
+                                            localField: "_id",
+                                            foreignField: "_id",
+                                            as: "branchInfo"
+                                        }
+                                    },
+                                    {
+                                        $unwind: "$branchInfo"
+                                    },
+                                    {
+                                        $project: {
+                                            branchId: "$_id",
+                                            name: "$branchInfo.name",
+                                            totalRevenue: 1,
+                                            totalOrders: 1
+                                        }
+                                    },
+                                    {
+                                        $sort: { totalRevenue: -1 }
+                                    }
+                                ]
+                            } : {})
+                        }
                     }
-                }
-            ]);
+                ]);
 
-            const liveStats = aggregatedStats.liveStats[0] || { totalOrders: 0, totalRevenue: 0 };
-            const pendingCount = aggregatedStats.pendingCount[0]?.count || 0;
-            const branchLeaderboard = aggregatedStats.branchLeaderboard || [];
-            
-            const safeBranchId = (branchId && mongoose.Types.ObjectId.isValid(branchId)) ? new mongoose.Types.ObjectId(branchId) : null;
+                const liveStats = aggregatedStats.liveStats[0] || { totalOrders: 0, totalRevenue: 0 };
+                const pendingCount = aggregatedStats.pendingCount[0]?.count || 0;
+                const branchLeaderboard = aggregatedStats.branchLeaderboard || [];
 
-            // Generate today's analytics live instead of checking stored data
-            const todayData = await analyticsService.generateDailyAnalytics(today, branchId);
+                const safeBranchId = (branchId && mongoose.Types.ObjectId.isValid(branchId)) ? new mongoose.Types.ObjectId(branchId) : null;
 
-            const lowStock = await Inventory.find({
-                ...getBranchMatch(branchId),
-                $expr: { $lte: ["$currentStock", "$reorderLevel"] }
-            }).select('name currentStock unit').lean();
+                // Generate today's analytics live instead of checking stored data
+                const todayData = await analyticsService.generateDailyAnalytics(today, branchId);
 
-            return {
-                branchInfo: safeBranchId ? branches[0] : { name: "All Branches" },
-                liveTotals: { revenue: liveStats.totalRevenue, orders: liveStats.totalOrders },
-                today: todayData,
-                pendingWorkload: pendingCount,
-                inventoryAlerts: lowStock,
-                branchCount: branches.length,
-                branchLeaderboard: branchLeaderboard // Add this for SuperAdmin branch comparison
-            };
-        }, cacheTTL);
-    } catch (error) {
-        logger.error("Dashboard Summary Error:", error.message);
-        throw error;
-    }
-},
+                const lowStock = await Inventory.find({
+                    ...getBranchMatch(branchId),
+                    $expr: { $lte: ["$currentStock", "$reorderLevel"] }
+                }).select('name currentStock unit').lean();
+
+                return {
+                    branchInfo: safeBranchId ? branches[0] : { name: "All Branches" },
+                    liveTotals: { revenue: liveStats.totalRevenue, orders: liveStats.totalOrders },
+                    today: todayData,
+                    pendingWorkload: pendingCount,
+                    inventoryAlerts: lowStock,
+                    branchCount: branches.length,
+                    branchLeaderboard: branchLeaderboard // Add this for SuperAdmin branch comparison
+                };
+            }, cacheTTL);
+        } catch (error) {
+            logger.error("Dashboard Summary Error:", error.message);
+            throw error;
+        }
+    },
 
     // Cache management methods
     clearAnalyticsCache: async (branchId = null) => {
@@ -253,7 +253,7 @@ export const analyticsService = {
             // Clear period analytics cache for this branch (need to clear multiple patterns)
             // Since we can't pattern match directly, we'll clear the main cache
             await redisService.clearAnalyticsCache();
-            
+
             logger.info(`All analytics cache cleared for branch: ${branchId}`);
         } catch (error) {
             logger.error('Error clearing all analytics cache for branch:', error.message);
@@ -271,78 +271,115 @@ export const analyticsService = {
             const cacheTTL = 600; // 10 minutes cache for period analytics
 
             return await redisService.getOrSet(cacheKey, async () => {
-            const start = new Date(new Date(startDate).setUTCHours(0, 0, 0, 0));
-            const end = new Date(new Date(endDate).setUTCHours(23, 59, 59, 999));
+                const start = new Date(new Date(startDate).setUTCHours(0, 0, 0, 0));
+                const end = new Date(new Date(endDate).setUTCHours(23, 59, 59, 999));
 
-            // Generate live analytics for each day in the range
-            const analytics = [];
-            let totalOrders = 0;
-            let totalRevenue = 0;
+                // Generate live analytics for each day in the range
+                const analytics = [];
+                let totalOrders = 0;
+                let totalRevenue = 0;
 
-            for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
-                const dayStart = new Date(date.setUTCHours(0, 0, 0, 0));
-                const dayEnd = new Date(date.setUTCHours(23, 59, 59, 999));
+                for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+                    const dayStart = new Date(date.setUTCHours(0, 0, 0, 0));
+                    const dayEnd = new Date(date.setUTCHours(23, 59, 59, 999));
 
-                const matchStage = {
-                    createdAt: { $gte: dayStart, $lte: dayEnd },
-                    ...getBranchMatch(branchId)
-                };
+                    const matchStage = {
+                        createdAt: { $gte: dayStart, $lte: dayEnd },
+                        ...getBranchMatch(branchId)
+                    };
 
-                const dayMetrics = await Order.aggregate([
-                    { $match: matchStage },
-                    {
-                        $facet: {
-                            totals: [{
-                                $group: {
-                                    _id: null,
-                                    count: { $sum: 1 },
-                                    totalValue: { $sum: "$totalAmount" },
-                                    revenue: { $sum: { $cond: [{ $eq: ["$paymentStatus", "PAID"] }, "$totalAmount", 0] } }
-                                }
-                            }],
-                            statusCounts: [{ $group: { _id: "$status", count: { $sum: 1 } } }],
-                            paymentCounts: [{ $group: { _id: "$paymentStatus", count: { $sum: 1 } } }]
+                    const dayMetrics = await Order.aggregate([
+                        { $match: matchStage },
+                        {
+                            $facet: {
+                                totals: [{
+                                    $group: {
+                                        _id: null,
+                                        count: { $sum: 1 },
+                                        totalValue: { $sum: "$totalAmount" },
+                                        revenue: { $sum: { $cond: [{ $eq: ["$paymentStatus", "PAID"] }, "$totalAmount", 0] } }
+                                    }
+                                }],
+                                statusCounts: [{ $group: { _id: "$status", count: { $sum: 1 } } }],
+                                paymentCounts: [{ $group: { _id: "$paymentStatus", count: { $sum: 1 } } }]
+                            }
                         }
-                    }
+                    ]);
+
+                    const m = dayMetrics[0];
+                    const totals = m.totals[0] || { count: 0, totalValue: 0, revenue: 0 };
+
+                    // Accumulate totals
+                    totalOrders += totals.count;
+                    totalRevenue += totals.revenue;
+
+                    // Create daily analytics object
+                    const dailyAnalytics = {
+                        date: dayStart,
+                        branchId: branchId ? (mongoose.Types.ObjectId.isValid(branchId) ? new mongoose.Types.ObjectId(branchId) : null) : null,
+                        totalOrders: totals.count,
+                        totalOrderValue: totals.totalValue,
+                        totalRevenue: totals.revenue,
+                        averageOrderValue: totals.count > 0 ? totals.totalValue / totals.count : 0,
+                        ordersByStatus: m.statusCounts.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {}),
+                        paidOrders: m.paymentCounts.find(p => p._id === 'PAID')?.count || 0,
+                        unpaidOrders: m.paymentCounts.find(p => p._id === 'UNPAID')?.count || 0
+                    };
+
+                    analytics.push(dailyAnalytics);
+                }
+
+                // Get new customers for the period
+                const newCustomers = await User.countDocuments({
+                    role: 'CUSTOMER',
+                    createdAt: { $gte: start, $lte: end }
+                });
+
+                // Aggregate order status breakdown for logisticsCard
+                const orderStatusBreakdown = await Order.aggregate([
+                    { $match: { createdAt: { $gte: start, $lte: end }, ...getBranchMatch(branchId) } },
+                    { $group: { _id: "$status", count: { $sum: 1 } } }
                 ]);
 
-                const m = dayMetrics[0];
-                const totals = m.totals[0] || { count: 0, totalValue: 0, revenue: 0 };
+                // Aggregate service revenue breakdown for service performance
+                const serviceRevenueBreakdown = await Order.aggregate([
+                    { $match: { createdAt: { $gte: start, $lte: end }, paymentStatus: "PAID", ...getBranchMatch(branchId) } },
+                    { $group: { _id: "$serviceType", totalRevenue: { $sum: "$totalAmount" }, count: { $sum: 1 } } }
+                ]);
 
-                // Accumulate totals
-                totalOrders += totals.count;
-                totalRevenue += totals.revenue;
-
-                // Create daily analytics object
-                const dailyAnalytics = {
-                    date: dayStart,
-                    branchId: branchId ? (mongoose.Types.ObjectId.isValid(branchId) ? new mongoose.Types.ObjectId(branchId) : null) : null,
-                    totalOrders: totals.count,
-                    totalOrderValue: totals.totalValue,
-                    totalRevenue: totals.revenue,
-                    averageOrderValue: totals.count > 0 ? totals.totalValue / totals.count : 0,
-                    ordersByStatus: m.statusCounts.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {}),
-                    paidOrders: m.paymentCounts.find(p => p._id === 'PAID')?.count || 0,
-                    unpaidOrders: m.paymentCounts.find(p => p._id === 'UNPAID')?.count || 0
+                // Transform order status data for LogisticsCard 
+                const statusMap = {
+                    'PENDING': 'pendingOrders',
+                    'PROCESSING': 'processingOrders',
+                    'READY': 'readyOrders',
+                    'DELIVERED': 'deliveredOrders'
                 };
 
-                analytics.push(dailyAnalytics);
-            }
+                const orderStatusCounts = orderStatusBreakdown.reduce((acc, curr) => {
+                    const fieldName = statusMap[curr._id];
+                    if (fieldName) acc[fieldName] = curr.count;
+                    return acc;
+                }, {});
 
-            // Get new customers for the period
-            const newCustomers = await User.countDocuments({
-                role: 'CUSTOMER',
-                createdAt: { $gte: start, $lte: end }
-            });
+                // Transform service revenue data for ServicePerformanceCard (expects array)
+                const revenueByService = serviceRevenueBreakdown.map(item => ({
+                    service: item._id || 'Unknown Service',
+                    category: item._id || 'Unknown Service',
+                    amount: item.totalRevenue,
+                    count: item.count
+                }));
 
-            return {
-                analytics,
-                totals: {
-                    totalOrders,
-                    totalRevenue,
-                    newCustomers
-                }
-            };
+                return {
+                    analytics,
+                    totals: {
+                        totalOrders,
+                        totalRevenue,
+                        newCustomers,
+                        ...orderStatusCounts
+                    },
+                    revenueByService,
+                    totalRevenue  
+                };
             }, cacheTTL);
         } catch (error) {
             logger.error("Get Analytics Period Error:", error.message);
