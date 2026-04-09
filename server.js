@@ -116,7 +116,7 @@ app.use(requestLogger);
 
 // CORS configuration 
 const corsOrigin = process.env.NODE_ENV === 'production'
-    ? [process.env.CORS_ORIGIN, 'https://klean-app.vercel.app', 'http://localhost:5173'].filter(Boolean)
+    ? [process.env.CORS_ORIGIN, 'https://klean.vercel.app', 'http://localhost:5173'].filter(Boolean)
     : process.env.CORS_ORIGIN || '*';
 
 app.use(cors({

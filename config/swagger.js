@@ -21,7 +21,7 @@ const options = {
                 description: 'Development server'
             },
             {
-                url: 'https://klean-app.vercel.app/api/v1',
+                url: 'https://klean.vercel.app/api/v1',
                 description: 'Production server'
             }
         ],
