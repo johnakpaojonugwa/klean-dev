@@ -343,31 +343,53 @@ export const analyticsService = {
 
                 // Aggregate service revenue breakdown for service performance
                 const serviceRevenueBreakdown = await Order.aggregate([
-                    { $match: { createdAt: { $gte: start, $lte: end }, paymentStatus: "PAID", ...getBranchMatch(branchId) } },
-                    { $group: { _id: "$serviceType", totalRevenue: { $sum: "$totalAmount" }, count: { $sum: 1 } } }
+                    {
+                        $match: {
+                            createdAt: { $gte: start, $lte: end },
+                            paymentStatus: "PAID",
+                            serviceType: { $exists: true, $ne: null },  
+                            ...getBranchMatch(branchId)
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: "$serviceType",
+                            totalRevenue: { $sum: "$totalAmount" },
+                            count: { $sum: 1 }
+                        }
+                    },
+                    { $sort: { totalRevenue: -1 } }
                 ]);
 
                 // Transform order status data for LogisticsCard 
                 const statusMap = {
                     'PENDING': 'pendingOrders',
-                    'PROCESSING': [ 'processingOrders', 'washingOrders', 'dryingOrders', 'ironingOrders' ], 
+                    'PROCESSING': 'processingOrders',
+                    'WASHING': 'readyOrders',
+                    'DRYING': 'readyOrders',
+                    'IRONING': 'readyOrders',
                     'READY': 'readyOrders',
-                    'DELIVERED': 'deliveredOrders'
+                    'DELIVERED': 'deliveredOrders',
+                    'COMPLETED': 'deliveredOrders'
                 };
 
                 const orderStatusCounts = orderStatusBreakdown.reduce((acc, curr) => {
                     const fieldName = statusMap[curr._id];
-                    if (fieldName) acc[fieldName] = curr.count;
+                    if (fieldName) {
+                        acc[fieldName] = (acc[fieldName] || 0) + curr.count;
+                    }
                     return acc;
                 }, {});
 
-                // Transform service revenue data for ServicePerformanceCard (expects array)
-                const revenueByService = serviceRevenueBreakdown.map(item => ({
-                    service: item._id || 'Unknown Service',
-                    category: item._id || 'Unknown Service',
-                    amount: item.totalRevenue,
-                    count: item.count
-                }));
+                // Transform service revenue data for ServicePerformanceCard
+                const revenueByService = serviceRevenueBreakdown
+                    .filter(item => item._id) 
+                    .map(item => ({
+                        service: item._id || 'Unknown Service',
+                        category: item._id || 'Unknown Service',
+                        amount: Number(item.totalRevenue) || 0,
+                        count: item.count
+                    }));
 
                 return {
                     analytics,
@@ -378,7 +400,7 @@ export const analyticsService = {
                         ...orderStatusCounts
                     },
                     revenueByService,
-                    totalRevenue  
+                    totalRevenue
                 };
             }, cacheTTL);
         } catch (error) {
