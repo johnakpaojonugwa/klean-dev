@@ -11,11 +11,22 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = express.Router();
 
-// SUPER_ADMIN only routes
-router.post('/', auth, authorize('SUPER_ADMIN'), asyncHandler(createBranch));
-router.get('/', auth, asyncHandler(getAllBranches));
-router.get('/:branchId', auth, asyncHandler(getBranchById));
-router.put('/:branchId', auth, authorize('SUPER_ADMIN'), asyncHandler(updateBranch));
-router.delete('/:branchId', auth, authorize('SUPER_ADMIN'), asyncHandler(deleteBranch));
+// Apply auth to all branch routes
+router.use(auth);
+
+// Create branch (SUPER_ADMIN only)
+router.post('/', authorize('SUPER_ADMIN'), asyncHandler(createBranch));
+
+// Get all branches
+router.get('/', asyncHandler(getAllBranches));
+
+// Get single branch
+router.get('/:branchId', asyncHandler(getBranchById));
+
+// Update branch (SUPER_ADMIN only)
+router.put('/:branchId', authorize('SUPER_ADMIN'), asyncHandler(updateBranch));
+
+// Delete branch (SUPER_ADMIN only)
+router.delete('/:branchId', authorize('SUPER_ADMIN'), asyncHandler(deleteBranch));
 
 export default router;

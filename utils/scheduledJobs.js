@@ -49,15 +49,7 @@ export const initializeScheduledJobs = () => {
         );
     });
 
-    // Generate daily analytics - Every day at 11:59 PM
-    cron.schedule('59 23 * * *', async () => {
-        logger.info('Generating daily analytics...');
-        await executeJobWithRetry(
-            () => analyticsService.generateDailyAnalytics(new Date()),
-            'Daily analytics generation',
-            3
-        );
-    });
+    // Daily analytics generation removed - now using live queries only
 
     // Payment reminders - Every day at 5:00 PM
     cron.schedule('0 17 * * *', async () => {

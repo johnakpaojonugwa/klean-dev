@@ -5,16 +5,19 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = express.Router();
 
+// Apply auth to all invoice routes
+router.use(auth);
+
 // Managers can create invoices when an order is finalized
-router.post('/', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(createInvoice));
+router.post('/', authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(createInvoice));
 
 // Customers can see their own, Managers can see branch invoices
-router.get('/my-invoices', auth, asyncHandler(getMyInvoices));
+router.get('/my-invoices', asyncHandler(getMyInvoices));
 
 // View specific invoice details
-router.get('/:id', auth, asyncHandler(getInvoiceById));
+router.get('/:id', asyncHandler(getInvoiceById));
 
 // Download PDF
-router.get('/:id/download', auth, asyncHandler(downloadInvoice));
+router.get('/:id/download', asyncHandler(downloadInvoice));
 
 export default router;

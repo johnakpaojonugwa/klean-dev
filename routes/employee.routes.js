@@ -14,25 +14,28 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 
 const router = express.Router();
 
+// Apply auth to all employee routes
+router.use(auth);
+
 // Create Employee (SUPER_ADMIN, BRANCH_MANAGER)
-router.post('/', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), uploadMiddleware, asyncHandler(onboardEmployee));
+router.post('/', uploadMiddleware, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(onboardEmployee));
 
 // Get All Employees
-router.get('/', auth, asyncHandler(getAllEmployees));
+router.get('/', asyncHandler(getAllEmployees));
 
 // Get Employee by User ID
-router.get('/user/:userId', auth, asyncHandler(getEmployeeByUserId));
+router.get('/user/:userId', asyncHandler(getEmployeeByUserId));
 
 // Get Single Employee
-router.get('/:employeeId', auth, asyncHandler(getEmployee));
+router.get('/:employeeId', asyncHandler(getEmployee));
 
 // Update Employee
-router.put('/:employeeId', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), uploadMiddleware, asyncHandler(updateEmployee));
+router.put('/:employeeId', uploadMiddleware, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(updateEmployee));
 
 // Terminate Employee (SUPER_ADMIN and BRANCH_MANAGER)
-router.post('/:employeeId/terminate', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(terminateEmployee));
+router.post('/:employeeId/terminate', authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(terminateEmployee));
 
 // Delete Employee (SUPER_ADMIN only)
-router.delete('/:employeeId', auth, authorize('SUPER_ADMIN'), asyncHandler(deleteEmployee));
+router.delete('/:employeeId', authorize('SUPER_ADMIN'), asyncHandler(deleteEmployee));
 
 export default router;

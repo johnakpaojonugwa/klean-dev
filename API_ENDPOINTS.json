@@ -2,7 +2,10 @@
   "version": "2.0",
   "baseURL": "http://localhost:3000/api/v1",
   "authentication": "JWT Bearer Token in Authorization header",
-  "lastUpdated": "2026-04-08",
+  "lastUpdated": "2026-04-09",
+  "analytics": {
+    "note": "All analytics endpoints now use live queries directly from the database for real-time accuracy. No pre-computed analytics storage is required."
+  },
   "endpoints": {
     "Dashboard": {
       "getDashboardSummary": {

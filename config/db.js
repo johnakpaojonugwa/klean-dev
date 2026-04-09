@@ -37,3 +37,12 @@ export const connectDB = async () => {
 
     await connectWithRetry(uri);
 };
+
+export const closeDB = async () => {
+    try {
+        await mongoose.connection.close();
+        logger.info('Database connection closed successfully.');
+    } catch (error) {
+        logger.error('Error closing database connection:', error.message);
+    }
+};

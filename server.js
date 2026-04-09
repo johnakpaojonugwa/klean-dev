@@ -12,6 +12,8 @@ import { logger } from './utils/logger.js';
 import { requestLogger, logErrorContext } from './middlewares/loggingMiddleware.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { initializeScheduledJobs } from './utils/scheduledJobs.js';
+import redisService from './services/redisService.js';
+import redisRateLimiter from './middlewares/redisRateLimiter.js';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import orderRoutes from './routes/order.routes.js';
@@ -84,6 +86,11 @@ if (process.env.NODE_ENV === 'production') {
 
 const app = express();
 
+// Initialize Redis rate limiter BEFORE using rate limiter middleware
+redisRateLimiter.initialize().catch((error) => {
+    logger.warn('Redis rate limiter initialization failed, will use memory mode:', error.message);
+});
+
 // Sentry request handler
 if (process.env.NODE_ENV === 'production') {
     Sentry.setupExpressErrorHandler(app);
@@ -92,20 +99,11 @@ if (process.env.NODE_ENV === 'production') {
 // Security Middleware
 app.use(helmet());
 
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-    message: 'Too many requests from this IP, please try again later.'
-});
+// Rate limiting with Redis fallback
+app.use(redisRateLimiter.generalLimiter);
 
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 5,
-    message: 'Too many login attempts, please try again later.'
-});
-
-app.use(limiter);
+// Auth-specific rate limiting
+const authLimiter = redisRateLimiter.authLimiter;
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -140,8 +138,45 @@ app.get('/', (req, res) => {
 });
 
 // Health check route
-app.get('/api/v1/health', (req, res) => {
-    res.status(200).json({ success: true, message: 'Server is running' });
+app.get('/api/v1/health', async (req, res) => {
+    try {
+        // Check database connection
+        const dbStatus = mongoose.connection.readyState === 1;
+
+        // Check Redis connection
+        const redisStatus = await redisService.ping().catch(() => false);
+
+        // Get system info
+        const systemInfo = {
+            uptime: process.uptime(),
+            memory: process.memoryUsage(),
+            version: process.version,
+            environment: process.env.NODE_ENV || 'development'
+        };
+
+        const health = {
+            success: true,
+            message: 'Server is running',
+            services: {
+                database: dbStatus ? 'connected' : 'disconnected',
+                redis: redisStatus ? 'connected' : 'disconnected',
+                cache: redisStatus ? 'available' : 'unavailable'
+            },
+            system: systemInfo,
+            timestamp: new Date().toISOString()
+        };
+
+        // Return 503 if critical services are down
+        const statusCode = (dbStatus) ? 200 : 503;
+        res.status(statusCode).json(health);
+    } catch (error) {
+        logger.error('Health check error:', error.message);
+        res.status(503).json({
+            success: false,
+            message: 'Health check failed',
+            error: error.message
+        });
+    }
 });
 
 // Swagger Documentation
@@ -159,6 +194,11 @@ app.get('/api/v1/docs.json', (req, res) => {
 
 // Connect to database
 connectDB();
+
+// Initialize Redis connection
+redisService.connect().catch((error) => {
+    logger.warn('Redis connection failed, continuing without caching:', error.message);
+});
 
 // Initialize scheduled jobs
 initializeScheduledJobs();
@@ -218,6 +258,13 @@ const gracefulShutdown = async (signal) => {
         logger.info('MongoDB connection closed');
     } catch (err) {
         logger.error('Error closing MongoDB connection:', err.message);
+    }
+
+    try {
+        await redisService.disconnect();
+        logger.info('Redis connection closed');
+    } catch (err) {
+        logger.error('Error closing Redis connection:', err.message);
     }
 
     setTimeout(() => {

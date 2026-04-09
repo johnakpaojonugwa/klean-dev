@@ -10,20 +10,26 @@ import {
 } from "../controllers/analytics.controller.js";
 import { auth, authorize } from "../middlewares/authMiddleware.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import redisRateLimiter from "../middlewares/redisRateLimiter.js";
 
 const router = express.Router();
 
+// Apply auth and analytics-specific middleware to all analytics routes
+router.use(auth);
+router.use(authorize('SUPER_ADMIN', 'BRANCH_MANAGER'));
+router.use(redisRateLimiter.analyticsLimiter);
+
 // Dashboard (overview)
-router.get('/dashboard', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getDashboard));
+router.get('/dashboard', asyncHandler(getDashboard));
 
 // Analytics endpoints
-router.get('/period', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getAnalyticsPeriod));
-router.get('/daily', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getDailyAnalytics));
+router.get('/period', asyncHandler(getAnalyticsPeriod));
+router.get('/daily', asyncHandler(getDailyAnalytics));
 
 // Specific analytics
-router.get('/orders/trends', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getOrderTrends));
-router.get('/revenue', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getRevenueAnalytics));
-router.get('/customers', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getCustomerAnalytics));
-router.post('/export/pdf', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(exportDashboardPDF));
+router.get('/orders/trends', asyncHandler(getOrderTrends));
+router.get('/revenue', asyncHandler(getRevenueAnalytics));
+router.get('/customers', asyncHandler(getCustomerAnalytics));
+router.post('/export/pdf', asyncHandler(exportDashboardPDF));
 
 export default router;

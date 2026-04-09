@@ -753,6 +753,8 @@ Authorization: Bearer <accessToken>
 ## Analytics & Dashboard
 **Base Path:** `/analytics`
 
+**Note:** All analytics endpoints now use live queries directly from the database for real-time accuracy. No pre-computed analytics storage is required.
+
 ### 1. Get Dashboard Summary
 - **Method:** `GET`
 - **Path:** `/analytics/dashboard`

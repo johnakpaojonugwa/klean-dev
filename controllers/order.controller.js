@@ -7,6 +7,7 @@ import { sendResponse, sendError } from "../utils/response.js";
 import { logger } from "../utils/logger.js";
 import mongoose from "mongoose";
 import { isValidObjectId, sanitizeInput, sanitizeForRegex } from "../utils/validators.js";
+import { analyticsService } from "../services/analyticsService.js";
 
 // Inventory Deductions
 const INVENTORY_TRANSITIONS = [
@@ -224,6 +225,11 @@ export const createOrder = async (req, res, next) => {
     ]);
 
     logger.info(`Order created by ${req.user.id}: ${order.orderNumber}`);
+
+    // Clear analytics cache for affected branch
+    analyticsService.clearDashboardCache(effectiveBranchId).catch(err =>
+        logger.warn('Failed to clear analytics cache after order creation:', err.message)
+    );
 
     return sendResponse(res, 201, true, "Order created successfully", { order: populatedOrder });
   } catch (error) {
@@ -498,6 +504,11 @@ export const updateOrderStatus = async (req, res, next) => {
     await session.commitTransaction();
 
     logger.info(`Order ${order.orderNumber} transitioned ${oldStatus} -> ${status} by ${req.user.id}`);
+
+    // Clear analytics cache for affected branch
+    analyticsService.clearDashboardCache(order.branchId).catch(err =>
+        logger.warn('Failed to clear analytics cache after status update:', err.message)
+    );
 
     const finalOrder = await Order.findById(orderId).populate(["customerId", "branchId", "assignedEmployee"]);
 

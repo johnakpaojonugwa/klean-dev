@@ -12,11 +12,22 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = express.Router();
 
-// Branch manager endpoints grouped separately
-router.post('/', auth, authorize('SUPER_ADMIN'), uploadMiddleware, asyncHandler(createBranchManager));
-router.get('/', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getBranchManagers));
-router.get('/:userId', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getBranchManagerById));
-router.put('/:userId', auth, authorize('SUPER_ADMIN'), uploadMiddleware, asyncHandler(updateBranchManager));
-router.delete('/:userId', auth, authorize('SUPER_ADMIN'), asyncHandler(deleteBranchManager));
+// Apply auth to all branch manager routes
+router.use(auth);
+
+// Create branch manager
+router.post('/', authorize('SUPER_ADMIN'), uploadMiddleware, asyncHandler(createBranchManager));
+
+// Get branch managers
+router.get('/', authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getBranchManagers));
+
+// Get single branch manager
+router.get('/:userId', authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getBranchManagerById));
+
+// Update branch manager
+router.put('/:userId', authorize('SUPER_ADMIN'), uploadMiddleware, asyncHandler(updateBranchManager));
+
+// Delete branch manager
+router.delete('/:userId', authorize('SUPER_ADMIN'), asyncHandler(deleteBranchManager));
 
 export default router;

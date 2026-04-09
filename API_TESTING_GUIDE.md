@@ -373,6 +373,201 @@ curl -X DELETE http://localhost:3000/api/v1/inventory/<itemId> \
 
 ---
 
+## Analytics & Dashboard Tests
+
+**Note:** All analytics endpoints now use live queries directly from the database for real-time accuracy. No pre-computed analytics storage is required.
+
+### Get Dashboard Summary
+```bash
+curl http://localhost:3000/api/v1/analytics/dashboard \
+  -H "Authorization: Bearer <access_token>"
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Dashboard summary retrieved",
+  "data": {
+    "todayRevenue": 2500,
+    "todayOrders": 15,
+    "totalCustomers": 120,
+    "lowStockItems": 3,
+    "pendingOrders": 8,
+    "completedOrders": 45
+  }
+}
+```
+
+### Get Period Analytics
+```bash
+# Get analytics for the last 7 days
+curl "http://localhost:3000/api/v1/analytics/period?startDate=2024-01-01&endDate=2024-01-07" \
+  -H "Authorization: Bearer <access_token>"
+
+# Get analytics for specific branch
+curl "http://localhost:3000/api/v1/analytics/period?startDate=2024-01-01&endDate=2024-01-07&branchId=<branchId>" \
+  -H "Authorization: Bearer <access_token>"
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Analytics retrieved",
+  "data": {
+    "period": {
+      "startDate": "2024-01-01",
+      "endDate": "2024-01-07",
+      "totalRevenue": 17500,
+      "totalOrders": 105,
+      "averageOrderValue": 166.67
+    },
+    "analytics": [
+      {
+        "date": "2024-01-01",
+        "revenue": 2500,
+        "orders": 15,
+        "customers": 12,
+        "averageOrderValue": 166.67
+      },
+      {
+        "date": "2024-01-02",
+        "revenue": 2200,
+        "orders": 13,
+        "customers": 10,
+        "averageOrderValue": 169.23
+      }
+    ]
+  }
+}
+```
+
+### Get Daily Analytics
+```bash
+# Get today's analytics
+curl http://localhost:3000/api/v1/analytics/daily \
+  -H "Authorization: Bearer <access_token>"
+
+# Get analytics for specific date
+curl "http://localhost:3000/api/v1/analytics/daily?date=2024-01-15" \
+  -H "Authorization: Bearer <access_token>"
+
+# Get analytics for specific branch and date
+curl "http://localhost:3000/api/v1/analytics/daily?date=2024-01-15&branchId=<branchId>" \
+  -H "Authorization: Bearer <access_token>"
+```
+
+### Get Order Trends
+```bash
+curl http://localhost:3000/api/v1/analytics/orders/trends \
+  -H "Authorization: Bearer <access_token>"
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Order trends retrieved",
+  "data": {
+    "trends": [
+      {
+        "date": "2024-01-01",
+        "orders": 15,
+        "revenue": 2500
+      },
+      {
+        "date": "2024-01-02",
+        "orders": 13,
+        "revenue": 2200
+      }
+    ],
+    "growth": {
+      "ordersGrowth": 12.5,
+      "revenueGrowth": 8.3
+    }
+  }
+}
+```
+
+### Get Revenue Analytics
+```bash
+curl http://localhost:3000/api/v1/analytics/revenue \
+  -H "Authorization: Bearer <access_token>"
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Revenue analytics retrieved",
+  "data": {
+    "totalRevenue": 45250,
+    "monthlyRevenue": [
+      {
+        "month": "2024-01",
+        "revenue": 17500,
+        "orders": 105
+      },
+      {
+        "month": "2024-02",
+        "revenue": 15200,
+        "orders": 98
+      }
+    ],
+    "revenueByService": [
+      {
+        "service": "Standard Wash",
+        "revenue": 22500,
+        "percentage": 49.7
+      },
+      {
+        "service": "Dry Cleaning",
+        "revenue": 15200,
+        "percentage": 33.6
+      }
+    ]
+  }
+}
+```
+
+### Get Customer Analytics
+```bash
+curl http://localhost:3000/api/v1/analytics/customers \
+  -H "Authorization: Bearer <access_token>"
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Customer analytics retrieved",
+  "data": {
+    "totalCustomers": 120,
+    "newCustomersThisMonth": 15,
+    "returningCustomers": 85,
+    "averageOrdersPerCustomer": 3.2,
+    "topCustomers": [
+      {
+        "customerId": "...",
+        "name": "John Doe",
+        "totalOrders": 12,
+        "totalSpent": 1800
+      }
+    ]
+  }
+}
+```
+
+### Export Analytics to PDF
+```bash
+curl -X GET "http://localhost:3000/api/v1/analytics/export/pdf?startDate=2024-01-01&endDate=2024-01-31" \
+  -H "Authorization: Bearer <access_token>" \
+  -o analytics_report.pdf
+```
+
+---
+
 ## Error Test Cases
 
 ### 1. Missing Required Fields

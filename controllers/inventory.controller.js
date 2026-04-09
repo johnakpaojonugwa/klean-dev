@@ -3,6 +3,7 @@ import StockLog from "../models/stockLog.model.js";
 import { sendResponse, sendError } from "../utils/response.js";
 import { logger } from "../utils/logger.js";
 import mongoose from "mongoose";
+import { analyticsService } from "../services/analyticsService.js";
 
 // Add Inventory Item (With Initial Log)
 export const addInventoryItem = async (req, res, next) => {
@@ -93,6 +94,10 @@ export const adjustStock = async (req, res, next) => {
         }], { session });
 
         await session.commitTransaction();
+
+        // Clear analytics cache for this branch (inventory affects analytics)
+        await analyticsService.clearAllAnalyticsCacheForBranch(item.branchId);
+
         return sendResponse(res, 200, true, "Stock adjusted", { item });
     } catch (error) {
         if (session.inTransaction()) await session.abortTransaction();
@@ -150,6 +155,9 @@ export const updateInventoryItem = async (req, res, next) => {
         item.reorderPending = item.currentStock <= item.reorderLevel;
         
         await item.save();
+
+        // Clear analytics cache for this branch
+        await analyticsService.clearAllAnalyticsCacheForBranch(item.branchId);
 
         return sendResponse(res, 200, true, "Item updated", { item });
     } catch (error) {

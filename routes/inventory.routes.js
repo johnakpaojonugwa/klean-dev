@@ -12,22 +12,25 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = express.Router();
 
-// Get low stock items (admin/manager view)
-router.get('/low-stock', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getLowStockItems));
+// Apply default middleware to all inventory routes
+router.use(auth);
 
-// Add inventory item
-router.post('/', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(addInventoryItem));
+// Low stock items - requires manager+ role
+router.get('/low-stock', authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(getLowStockItems));
 
-// Get inventory by branch
-router.get('/branch/:branchId', auth, asyncHandler(getInventoryByBranch));
+// Add inventory item - requires manager+ role
+router.post('/', authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(addInventoryItem));
 
-// Update inventory item
-router.put('/:itemId', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(updateInventoryItem));
+// Get inventory by branch - auth only
+router.get('/branch/:branchId', asyncHandler(getInventoryByBranch));
 
-// Adjust inventory item
-router.patch('/:itemId/adjust', auth, authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(adjustStock));
+// Update inventory item - requires manager+ role
+router.put('/:itemId', authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(updateInventoryItem));
 
-// Delete inventory item
-router.delete('/:itemId', auth, authorize('SUPER_ADMIN'), asyncHandler(deleteInventoryItem));
+// Adjust inventory item - requires manager+ role
+router.patch('/:itemId/adjust', authorize('SUPER_ADMIN', 'BRANCH_MANAGER'), asyncHandler(adjustStock));
+
+// Delete inventory item - admin only
+router.delete('/:itemId', authorize('SUPER_ADMIN'), asyncHandler(deleteInventoryItem));
 
 export default router;

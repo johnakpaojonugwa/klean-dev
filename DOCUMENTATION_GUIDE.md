@@ -217,6 +217,7 @@ Impact: Better security, dev experience
 6. ✅ Pagination Support
 7. ✅ Status Filtering
 8. ✅ Low-Stock Alerts
+9. ✅ **Analytics Unification**: Live queries only (no pre-computed data)
 
 → **Read**: README.md API Endpoints section
 
@@ -257,6 +258,40 @@ Impact: Better security, dev experience
 
 ### Q: How do I monitor the system?
 **A**: Check logs/ directory and CODE_REVIEW.md logging section
+
+### Q: What analytics approach is used?
+**A**: **Live queries only** - All analytics are computed in real-time from the database. No pre-computed or cached analytics storage. This ensures data accuracy but may have higher query load.
+
+---
+
+## 📊 Analytics Architecture Decision
+
+### Live Queries vs Cached Analytics
+
+| Approach | Live Queries (Current) | Cached Analytics (Previous) |
+|----------|----------------------|---------------------------|
+| **Data Freshness** | Always real-time | Potentially stale |
+| **Storage** | No extra collections | Requires Analytics collection |
+| **Maintenance** | Simple - no sync jobs | Complex - cron jobs + error handling |
+| **Performance** | Higher DB load | Lower DB load, faster responses |
+| **Accuracy** | 100% accurate | Risk of sync failures |
+| **Scalability** | Good for read-heavy | Better for write-heavy |
+
+### Why Live Queries?
+
+✅ **Simplicity**: No background jobs, no data synchronization
+✅ **Accuracy**: Data is always current
+✅ **Maintenance**: Fewer moving parts, easier debugging
+✅ **Storage**: Reduced database storage requirements
+
+⚠️ **Trade-offs**: Higher database load, potential slower responses for complex queries
+
+### Implementation Details
+
+- All analytics endpoints (`/analytics/*`) compute data live
+- Uses MongoDB aggregation pipelines for efficiency
+- Removed scheduled analytics generation from `scheduledJobs.js`
+- Dashboard shows real-time data, not cached summaries
 
 ---
 

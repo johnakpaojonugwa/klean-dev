@@ -2,9 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import authRoutes from '../../routes/auth.routes.js';
-import { errorHandler } from '../../middlewares/errorHandler.js';
-import { requestLogger } from '../../middlewares/loggingMiddleware.js';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import authRoutes from '../routes/auth.routes.js';
+import { errorHandler } from '../middlewares/errorHandler.js';
+import { requestLogger } from '../middlewares/loggingMiddleware.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const createTestServer = () => {
     const app = express();

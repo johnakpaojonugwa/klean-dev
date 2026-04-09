@@ -2,6 +2,7 @@ import Branch from "../models/branch.model.js";
 import User from "../models/user.model.js";
 import { sendResponse, sendError } from "../utils/response.js";
 import { logger } from "../utils/logger.js";
+import { analyticsService } from "../services/analyticsService.js";
 
 export const createBranch = async (req, res, next) => {
     try {
@@ -120,6 +121,9 @@ export const updateBranch = async (req, res, next) => {
         // Populate manager info after saving
         await branch.populate('manager', 'fullname email');
 
+        // Clear analytics cache for this branch
+        await analyticsService.clearAllAnalyticsCacheForBranch(branchId);
+
         logger.info(`Branch updated: ${branch.name} (${branch.branchCode})`);
         return sendResponse(res, 200, true, "Branch updated successfully", { branch });
     } catch (error) {
@@ -137,6 +141,9 @@ export const deleteBranch = async (req, res, next) => {
         if (!branch) {
             return sendError(res, 404, "Branch not found");
         }
+
+        // Clear analytics cache for this branch
+        await analyticsService.clearAllAnalyticsCacheForBranch(branchId);
 
         logger.info(`Branch deleted: ${branch.name}`);
         return sendResponse(res, 200, true, "Branch deleted successfully");

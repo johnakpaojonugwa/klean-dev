@@ -36,12 +36,29 @@ Your laundry management backend had a solid foundation but lacked several enterp
 - **Fix**: Added production-only validation for Resend, Twilio, and Cloudinary credentials in `server.js`
 - **Impact**: Fail-fast behavior prevents misconfigured deployments
 
-### 6. **Populate and Query Optimization**
-**Issue**: Read-only queries were returning full Mongoose documents
-- **Fix**: Added `.lean()` optimization to 26 read-only queries and improved analytics aggregation with `$facet`
-- **Impact**: Lower memory use and faster API responses
+### Analytics System Unification
 
-### 7. **Inconsistent Response Format**
+**Issue**: The analytics system had dual architecture causing data inconsistency
+- **Problem**: Dashboard used live queries while revenue analytics relied on pre-computed Analytics collection
+- **Risk**: Inconsistent data between dashboard and reports, stale cached data
+- **Solution**: Unified all analytics to use live database queries only
+- **Changes**:
+  - Modified `analyticsService.js` to generate analytics live instead of checking stored data
+  - Removed daily analytics generation cron job from `scheduledJobs.js`
+  - Updated all analytics endpoints to compute data in real-time
+- **Benefits**: 
+  - Real-time accuracy across all analytics endpoints
+  - Eliminated data synchronization issues
+  - Reduced database storage requirements
+  - Simplified maintenance and debugging
+
+### Performance Optimizations
+
+- **Query Optimization**: Added `.lean()` to 26 read-only queries for faster responses
+- **Aggregation Pipeline**: Improved analytics queries with `$facet` for better performance
+- **Memory Usage**: Reduced memory footprint by avoiding full Mongoose documents where not needed
+
+---
 **Issue**: Some endpoints return `{success, message, data}`, others return `{success, message, user}`
 - **Fix**: Created `response.js` utility with standardized format
 - **Impact**: Predictable client-side handling, better API contract
