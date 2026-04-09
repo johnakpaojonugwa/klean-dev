@@ -350,7 +350,7 @@ export const analyticsService = {
                 // Transform order status data for LogisticsCard 
                 const statusMap = {
                     'PENDING': 'pendingOrders',
-                    'PROCESSING': 'processingOrders',
+                    'PROCESSING': [ 'processingOrders', 'washingOrders', 'dryingOrders', 'ironingOrders' ], 
                     'READY': 'readyOrders',
                     'DELIVERED': 'deliveredOrders'
                 };
