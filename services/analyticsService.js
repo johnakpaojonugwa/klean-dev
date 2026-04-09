@@ -108,11 +108,11 @@ export const analyticsService = {
 
     // GET DASHBOARD SUMMARY
     getDashboardSummary: async (branchId = null) => {
-        try {
-            const cacheKey = redisService.getAnalyticsKey('dashboard', { branchId });
-            const cacheTTL = 300; // 5 minutes cache
+    try {
+        const cacheKey = redisService.getAnalyticsKey('dashboard', { branchId });
+        const cacheTTL = 300; // 5 minutes cache
 
-            return await redisService.getOrSet(cacheKey, async () => {
+        return await redisService.getOrSet(cacheKey, async () => {
             const todayStr = new Date().toISOString().split('T')[0];
             const today = new Date(`${todayStr}T00:00:00Z`);
 
@@ -120,6 +120,7 @@ export const analyticsService = {
             const branches = await Branch.find(branchQuery).select('totalRevenue totalOrders name').lean();
 
             const orderMatch = getBranchMatch(branchId);
+            
             // Combine live order stats and pending count in single aggregation
             const [aggregatedStats] = await Order.aggregate([
                 { $match: orderMatch },
@@ -137,13 +138,55 @@ export const analyticsService = {
                         pendingCount: [
                             { $match: { status: { $in: ['PENDING', 'PROCESSING', 'WASHING', 'DRYING', 'IRONING'] } } },
                             { $count: "count" }
-                        ]
+                        ],
+                        // NEW: Calculate branch leaderboard when branchId is null
+                        ...(branchId === null ? {
+                            branchLeaderboard: [
+                                {
+                                    $match: {
+                                        paymentStatus: "PAID",
+                                        branchId: { $exists: true, $ne: null }
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: "$branchId",
+                                        totalRevenue: { $sum: "$totalAmount" },
+                                        totalOrders: { $sum: 1 }
+                                    }
+                                },
+                                {
+                                    $lookup: {
+                                        from: "branches",
+                                        localField: "_id",
+                                        foreignField: "_id",
+                                        as: "branchInfo"
+                                    }
+                                },
+                                {
+                                    $unwind: "$branchInfo"
+                                },
+                                {
+                                    $project: {
+                                        branchId: "$_id",
+                                        name: "$branchInfo.name",
+                                        totalRevenue: 1,
+                                        totalOrders: 1
+                                    }
+                                },
+                                {
+                                    $sort: { totalRevenue: -1 }
+                                }
+                            ]
+                        } : {})
                     }
                 }
             ]);
 
             const liveStats = aggregatedStats.liveStats[0] || { totalOrders: 0, totalRevenue: 0 };
             const pendingCount = aggregatedStats.pendingCount[0]?.count || 0;
+            const branchLeaderboard = aggregatedStats.branchLeaderboard || [];
+            
             const safeBranchId = (branchId && mongoose.Types.ObjectId.isValid(branchId)) ? new mongoose.Types.ObjectId(branchId) : null;
 
             // Generate today's analytics live instead of checking stored data
@@ -160,14 +203,15 @@ export const analyticsService = {
                 today: todayData,
                 pendingWorkload: pendingCount,
                 inventoryAlerts: lowStock,
-                branchCount: branches.length
+                branchCount: branches.length,
+                branchLeaderboard: branchLeaderboard // Add this for SuperAdmin branch comparison
             };
-            }, cacheTTL);
-        } catch (error) {
-            logger.error("Dashboard Summary Error:", error.message);
-            throw error;
-        }
-    },
+        }, cacheTTL);
+    } catch (error) {
+        logger.error("Dashboard Summary Error:", error.message);
+        throw error;
+    }
+},
 
     // Cache management methods
     clearAnalyticsCache: async (branchId = null) => {
