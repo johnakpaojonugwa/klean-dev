@@ -365,9 +365,9 @@ export const analyticsService = {
                 const statusMap = {
                     'PENDING': 'pendingOrders',
                     'PROCESSING': 'processingOrders',
-                    'WASHING': 'readyOrders',
-                    'DRYING': 'readyOrders',
-                    'IRONING': 'readyOrders',
+                    'WASHING': 'processingOrders',
+                    'DRYING': 'processingOrders',
+                    'IRONING': 'processingOrders',
                     'READY': 'readyOrders',
                     'DELIVERED': 'deliveredOrders',
                     'COMPLETED': 'deliveredOrders'
