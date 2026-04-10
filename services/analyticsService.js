@@ -385,7 +385,7 @@ export const analyticsService = {
                 const revenueByService = serviceRevenueBreakdown
                     .filter(item => item._id) 
                     .map(item => ({
-                        service: item._id || 'Unknown Service',
+                        serviceType: item._id || 'Unknown Service',
                         category: item._id || 'Unknown Service',
                         amount: Number(item.totalRevenue) || 0,
                         count: item.count
