@@ -1,3 +1,4 @@
+import mongooose from "mongoose";
 import Branch from "../models/branch.model.js";
 import User from "../models/user.model.js";
 import { sendResponse, sendError } from "../utils/response.js";
