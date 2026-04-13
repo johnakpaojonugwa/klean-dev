@@ -6,13 +6,14 @@ A modular Node.js backend for laundry and service management with Express, Mongo
 
 - User authentication and session management
 - Role-based authorization for Super Admin, Branch Manager, Staff, and Customers
-- Branch, employee, and payroll management
+- Branch and employee management with flexible manager assignment
 - Order, inventory, invoice, and notification workflows
 - Analytics dashboards and exportable reports
-- Health checks and Swagger docs for easy discovery
+- Health checks and Swagger API documentation for easy discovery
 - Cloudinary file uploads for user avatars and asset storage
 - Redis-backed rate limiting with fallback to local memory
 - Scheduled jobs and audit logging utilities
+- Input validation middleware for data integrity
 
 ## Getting Started
 

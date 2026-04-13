@@ -7,6 +7,7 @@ import {
     deleteBranch
 } from "../controllers/branch.controller.js";
 import { auth, authorize } from "../middlewares/authMiddleware.js";
+import { validateBranchCreation, validateBranchUpdate } from "../middlewares/validateRequest.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = express.Router();
@@ -15,7 +16,7 @@ const router = express.Router();
 router.use(auth);
 
 // Create branch (SUPER_ADMIN only)
-router.post('/', authorize('SUPER_ADMIN'), asyncHandler(createBranch));
+router.post('/', authorize('SUPER_ADMIN'), validateBranchCreation, asyncHandler(createBranch));
 
 // Get all branches
 router.get('/', asyncHandler(getAllBranches));
@@ -24,7 +25,7 @@ router.get('/', asyncHandler(getAllBranches));
 router.get('/:branchId', asyncHandler(getBranchById));
 
 // Update branch (SUPER_ADMIN only)
-router.put('/:branchId', authorize('SUPER_ADMIN'), asyncHandler(updateBranch));
+router.put('/:branchId', authorize('SUPER_ADMIN'), validateBranchUpdate, asyncHandler(updateBranch));
 
 // Delete branch (SUPER_ADMIN only)
 router.delete('/:branchId', authorize('SUPER_ADMIN'), asyncHandler(deleteBranch));

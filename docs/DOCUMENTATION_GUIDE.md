@@ -249,6 +249,27 @@ Impact: Better security, dev experience
 ### Q: How do I deploy?
 **A**: Follow README.md and use production checklist in CODE_REVIEW.md
 
+---
+
+## 🆕 Recent Updates (April 2026)
+
+### Branch Management Enhancements
+- **Nullable Manager Relationships**: Branches can now be created without managers, allowing flexible assignment workflows
+- **Transaction Safety**: Added MongoDB transactions to prevent race conditions in branch-manager creation
+- **Enhanced Validation**: Stricter checks for manager assignments and role validation
+- **Input Validation Middleware**: Added `validateBranchCreation` and `validateBranchUpdate` to routes for data integrity
+
+### Code Quality Improvements
+- **Error Handling**: Improved session cleanup in transaction aborts
+- **Logging**: Replaced console.error with structured logging in upload utilities
+- **Documentation**: Updated API references with detailed request/response schemas
+
+### Security & Performance
+- **Atomic Operations**: Branch and manager creation now use transactions for consistency
+- **Validation Layers**: Multi-layer validation (middleware + controller) for robust input handling
+
+→ **Read**: API_REFERENCE.md for updated branch endpoints
+
 ### Q: What new endpoints are available?
 **A**: See README.md API Endpoints section (18 new endpoints!)
 

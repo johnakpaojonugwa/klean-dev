@@ -93,11 +93,11 @@ This document outlines the code review standards and best practices for the Klea
 - Protect sensitive employee information
 - Audit changes to employee records
 
-### Inventory Management
-- Implement low-stock alerts
-- Track stock movements with audit logs
-- Validate inventory quantities and costs
-- Support multi-branch inventory isolation
+### Branch Management
+- Implement nullable manager relationships to allow flexible assignment
+- Use database transactions for atomic branch-manager operations
+- Validate manager assignments to prevent conflicts
+- Ensure proper branch isolation for managers
 - Optimize queries for inventory reports
 
 ### Payroll Processing

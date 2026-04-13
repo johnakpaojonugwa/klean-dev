@@ -61,35 +61,65 @@
 
 ### `POST /api/v1/branch`
 - Create a branch (Super Admin only)
+- **Request Body**:
+  - `name` (string, required): Branch name (min 2 characters)
+  - `address` (object, required): Address with `street`, `city`, `state`, `zip`
+  - `email` (string, required): Branch email
+  - `contactNumber` (string, required): Phone number (7-15 digits)
+  - `servicesOffered` (array, required): Array of services (e.g., ["WASH_FOLD", "DELIVERY"])
+  - `operatingHours` (string, optional): Operating hours
+  - `managerId` (string, optional): User ID of the branch manager (can be assigned later)
+- **Validation**: Input validated for format and required fields before processing
+- **Notes**: Branches can be created without a manager initially, allowing for separate manager assignment workflow
 
 ### `GET /api/v1/branch`
-- List branches
+- List branches (all authenticated users)
+- **Query Params**: `isActive` (boolean), `page` (number), `limit` (number, max 100)
 
 ### `GET /api/v1/branch/:branchId`
-- Get branch details
+- Get branch details (all authenticated users)
+- **Path Params**: `branchId` (string)
 
 ### `PUT /api/v1/branch/:branchId`
 - Update branch (Super Admin only)
+- **Request Body**: Same as create, all fields optional
+- **Validation**: Input validated for format before processing
 
 ### `DELETE /api/v1/branch/:branchId`
 - Delete branch (Super Admin only)
+- **Path Params**: `branchId` (string)
 
 ## Branch Managers
 
 ### `POST /api/v1/branch-managers`
 - Create a branch manager (Super Admin only)
+- **Request Body**:
+  - `fullname` (string, required): Full name
+  - `email` (string, required): Email address
+  - `phoneNumber` (string, required): Phone number
+  - `password` (string, required): Password
+  - `address` (string, optional): Address
+  - `designation` (string, optional): Job designation
+  - `department` (string, optional): Department
+  - `branchId` (string, required): Branch ID to assign manager to
+- **Validation**: Ensures branch exists, no duplicate managers per branch, unique email/phone
+- **Notes**: Automatically assigns the manager to the specified branch and updates branch's manager field
 
 ### `GET /api/v1/branch-managers`
-- List branch managers
+- List branch managers (Super Admin and Branch Manager)
+- **Query Params**: `branchId`, `search`, `page`, `limit`
 
 ### `GET /api/v1/branch-managers/:userId`
-- Get a branch manager by ID
+- Get a branch manager by ID (Super Admin and Branch Manager)
+- **Path Params**: `userId` (string)
 
 ### `PUT /api/v1/branch-managers/:userId`
-- Update branch manager
+- Update branch manager (Super Admin only)
+- **Request Body**: Same as create, all fields optional
 
 ### `DELETE /api/v1/branch-managers/:userId`
-- Delete branch manager
+- Delete branch manager (Super Admin only)
+- **Path Params**: `userId` (string)
 
 ## Orders
 
