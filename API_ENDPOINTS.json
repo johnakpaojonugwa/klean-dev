@@ -321,8 +321,7 @@
         "body": {
           "name": "string",
           "address": "string",
-          "phoneNumber": "string",
-          "managerId": "string"
+          "phoneNumber": "string"
         }
       },
       "getAllBranches": {

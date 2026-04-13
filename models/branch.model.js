@@ -14,10 +14,6 @@ const branchSchema = new mongoose.Schema({
         type: String,
         match: [/^\+?[0-9]{7,15}$/, "Invalid phone number"]
     },
-    manager: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
-    },
     isActive: { type: Boolean, default: true },
     operatingHours: { type: String },
     totalOrders: { type: Number, default: 0 },
