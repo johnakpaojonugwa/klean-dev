@@ -41,12 +41,11 @@ const branchSchema = new mongoose.Schema({
     }],
 }, { timestamps: true });
 
-branchSchema.pre('validate', function(next) {
+branchSchema.pre('validate', function() {
     // Only generate if branchCode doesn't exist AND we have a name to base it on
     if (!this.branchCode && this.name) {
         this.branchCode = this.name.substring(0, 3).toUpperCase() + "-" + Math.floor(100 + Math.random() * 900);
     }
-    next(); 
 });
 
 const Branch = mongoose.model("Branch", branchSchema);
