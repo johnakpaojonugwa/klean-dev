@@ -69,8 +69,14 @@ export const createBranch = async (req, res, next) => {
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
-        logger.error("Create branch error:", error.message);
-        next(error);
+
+        logger.error("❌ DETAILED ERROR:", error); 
+
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+            errorType: error.name
+        });
     }
 };
 
