@@ -15,6 +15,7 @@ export const createBranch = async (req, res, next) => {
         const existingBranch = await Branch.findOne({ name }).session(session);
         if (existingBranch) {
             await session.abortTransaction();
+            session.endSession();
             return sendError(res, 409, "Branch with this name already exists");
         }
 
@@ -36,12 +37,15 @@ export const createBranch = async (req, res, next) => {
             // Check if the user is already managing another branch
             if (managerUser.branchId && managerUser.branchId.toString() !== branch._id.toString()) {
                 await session.abortTransaction();
+                session.endSession();
+                session.endSession();
                 return sendError(res, 400, "This user is already managing another branch");
             }
 
             // Check if the user exists
             if (!managerUser) {
                 await session.abortTransaction();
+                session.endSession();
                 return sendError(res, 404, "Manager user not found");
             }
 

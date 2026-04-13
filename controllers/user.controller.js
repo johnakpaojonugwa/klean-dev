@@ -1,9 +1,9 @@
+import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import Branch from "../models/branch.model.js";
 import { sendResponse, sendError } from "../utils/response.js";
 import { logger } from "../utils/logger.js";
 import { sanitizeForRegex } from "../utils/validators.js";
-import mongoose from "mongoose";
 
 // Create new user
 export const createUser = async (req, res, next) => {
@@ -52,6 +52,9 @@ export const createUser = async (req, res, next) => {
 
 // Create branch manager (SUPER_ADMIN only)
 export const createBranchManager = async (req, res, next) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const {
             fullname,
@@ -67,12 +70,23 @@ export const createBranchManager = async (req, res, next) => {
         const avatar = req.files?.avatar?.[0]?.path;
 
         if (!branchId) {
+            await session.abortTransaction();
+            session.endSession();
             return sendError(res, 400, "Branch ID is required for branch manager");
         }
 
-        const branch = await Branch.findById(branchId);
+        const branch = await Branch.findById(branchId).session(session);
         if (!branch) {
+            await session.abortTransaction();
+            session.endSession();
             return sendError(res, 404, "Branch not found");
+        }
+
+        // Additional check: ensure branch doesn't already have a manager
+        if (branch.manager) {
+            await session.abortTransaction();
+            session.endSession();
+            return sendError(res, 409, "This branch already has an assigned manager");
         }
 
         const existingConflict = await User.findOne({
@@ -80,13 +94,17 @@ export const createBranchManager = async (req, res, next) => {
                 { email: email?.toLowerCase()?.trim() },
                 { phoneNumber: phoneNumber?.trim() }
             ]
-        });
+        }).session(session);
         if (existingConflict) {
+            await session.abortTransaction();
+            session.endSession();
             return sendError(res, 400, "Email or Phone number already in use");
         }
 
-        const existingBranchManager = await User.findOne({ role: 'BRANCH_MANAGER', branchId });
+        const existingBranchManager = await User.findOne({ role: 'BRANCH_MANAGER', branchId }).session(session);
         if (existingBranchManager) {
+            await session.abortTransaction();
+            session.endSession();
             return sendError(res, 409, "This branch already has an assigned manager");
         }
 
@@ -104,14 +122,19 @@ export const createBranchManager = async (req, res, next) => {
             status: 'active'
         });
 
-        await newManager.save();
+        await newManager.save({ session });
 
         // Link branch to manager
         branch.manager = newManager._id;
-        await branch.save();
+        await branch.save({ session });
+
+        await session.commitTransaction();
+        session.endSession();
 
         return sendResponse(res, 201, true, "Branch manager created successfully", newManager);
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         logger.error("Create branch manager error:", error.message);
         next(error);
     }
