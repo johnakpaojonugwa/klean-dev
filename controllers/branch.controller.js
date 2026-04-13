@@ -35,19 +35,18 @@ export const createBranch = async (req, res, next) => {
         if (manager) {
             const managerUser = await User.findById(manager).session(session);
 
-            // Check if the user is already managing another branch
-            if (managerUser.branchId && managerUser.branchId.toString() !== branch._id.toString()) {
-                await session.abortTransaction();
-                session.endSession();
-                session.endSession();
-                return sendError(res, 400, "This user is already managing another branch");
-            }
-
             // Check if the user exists
             if (!managerUser) {
                 await session.abortTransaction();
                 session.endSession();
                 return sendError(res, 404, "Manager user not found");
+            }
+
+            // Check if the user is already managing another branch
+            if (managerUser.branchId && managerUser.branchId.toString() !== branch._id.toString()) {
+                await session.abortTransaction();
+                session.endSession();
+                return sendError(res, 400, "This user is already managing another branch");
             }
 
             // Update the User
@@ -58,12 +57,15 @@ export const createBranch = async (req, res, next) => {
             // Update the Branch to point back to the manager
             branch.manager = managerUser._id;
             await branch.save({ session });
+
+            logger.info(`Branch ${branch.name} created and linked to manager ${managerUser.fullname}`);
         }
 
         await session.commitTransaction();
         session.endSession();
 
-        logger.info(`Branch ${branch.name} created and linked to manager ${managerUser.fullname}`);
+        const message = manager ? `Branch and Manager linked successfully` : `Branch created successfully`;
+        return sendResponse(res, 201, true, message, { branch });
         return sendResponse(res, 201, true, "Branch and Manager linked successfully", { branch });
 
     } catch (error) {
