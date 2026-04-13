@@ -16,7 +16,9 @@ const branchSchema = new mongoose.Schema({
     },
     manager: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
+        default: null,
+        required: false
     },
     isActive: { type: Boolean, default: true },
     operatingHours: { type: String },
@@ -39,11 +41,12 @@ const branchSchema = new mongoose.Schema({
     }],
 }, { timestamps: true });
 
-branchSchema.pre('validate', function() {
+branchSchema.pre('validate', function(next) {
+    // Only generate if branchCode doesn't exist AND we have a name
     if (!this.branchCode && this.name) {
-        // Simple logic to create a code from the name
         this.branchCode = this.name.substring(0, 3).toUpperCase() + "-" + Math.floor(100 + Math.random() * 900);
     }
+    next(); 
 });
 
 const Branch = mongoose.model("Branch", branchSchema);
