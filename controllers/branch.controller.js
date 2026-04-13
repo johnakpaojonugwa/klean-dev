@@ -1,4 +1,4 @@
-import mongooose from "mongoose";
+import mongoose from "mongoose";
 import Branch from "../models/branch.model.js";
 import User from "../models/user.model.js";
 import { sendResponse, sendError } from "../utils/response.js";
@@ -10,7 +10,7 @@ export const createBranch = async (req, res, next) => {
     session.startTransaction();
 
     try {
-        const { name, address, email, contactNumber, managerId, servicesOffered, operatingHours } = req.body;
+        const { name, address, email, contactNumber, manager, servicesOffered, operatingHours } = req.body;
 
         // Check for existing branch name
         const existingBranch = await Branch.findOne({ name }).session(session);
@@ -32,8 +32,8 @@ export const createBranch = async (req, res, next) => {
         }], { session });
 
         // Link the Manager
-        if (managerId) {
-            const managerUser = await User.findById(managerId).session(session);
+        if (manager) {
+            const managerUser = await User.findById(manager).session(session);
 
             // Check if the user is already managing another branch
             if (managerUser.branchId && managerUser.branchId.toString() !== branch._id.toString()) {
@@ -63,7 +63,7 @@ export const createBranch = async (req, res, next) => {
         await session.commitTransaction();
         session.endSession();
 
-        logger.info(`Branch ${branch.name} created and linked to manager ${managerId}`);
+        logger.info(`Branch ${branch.name} created and linked to manager ${managerUser.fullname}`);
         return sendResponse(res, 201, true, "Branch and Manager linked successfully", { branch });
 
     } catch (error) {
