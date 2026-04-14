@@ -5,7 +5,7 @@ import { sendResponse } from "../utils/response.js";
 
 export const getSuperAdminDashboard = async (req, res, next) => {
     try {
-        // 1. Overall Company Totals
+        // Overall Company Totals
         const companyTotals = await Branch.aggregate([
             {
                 $group: {
@@ -17,12 +17,12 @@ export const getSuperAdminDashboard = async (req, res, next) => {
             }
         ]);
 
-        // 2. Branch Comparison (The "Leaderboard")
+        // Branch Comparison (The "Leaderboard")
         const branchPerformance = await Branch.find({})
             .select('name branchCode totalRevenue totalOrders isActive')
             .sort({ totalRevenue: -1 }); // Rank by money makers
 
-        // 3. System-Wide Low Stock (Critical Supply Chain View)
+        // System-Wide Low Stock (Critical Supply Chain View)
         const criticalInventory = await Inventory.find({
             $expr: { $lte: ["$currentStock", "$reorderLevel"] }
         })
@@ -30,7 +30,7 @@ export const getSuperAdminDashboard = async (req, res, next) => {
         .select('name currentStock unit branchId')
         .limit(10);
 
-        // 4. Recent High-Value Orders (Last 24 Hours)
+        // Recent High-Value Orders (Last 24 Hours)
         const recentBigOrders = await Order.find({
             createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
         })

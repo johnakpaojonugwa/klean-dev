@@ -9,6 +9,7 @@ class RedisService {
         this.maxRetries = 5;
     }
 
+    // Connect to Redis with retry logic
     async connect() {
         try {
             const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -68,6 +69,7 @@ class RedisService {
         }
     }
 
+    // Disconnect from Redis
     async disconnect() {
         if (this.client) {
             try {
@@ -95,6 +97,7 @@ class RedisService {
         }
     }
 
+    // Set cache with optional TTL (in seconds)
     async set(key, value, ttlSeconds = null) {
         if (!this.isConnected || !this.client) return false;
 
@@ -112,6 +115,7 @@ class RedisService {
         }
     }
 
+    // Delete cache key
     async del(key) {
         if (!this.isConnected || !this.client) return false;
 
@@ -124,6 +128,7 @@ class RedisService {
         }
     }
 
+    // Check if key exists
     async exists(key) {
         if (!this.isConnected || !this.client) return false;
 

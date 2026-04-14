@@ -2,7 +2,6 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import * as Sentry from '@sentry/node';
 import mongoose from 'mongoose';
@@ -28,6 +27,7 @@ import branchManagerRoutes from './routes/branchManager.routes.js';
 
 dotenv.config();
 
+// Validate critical environment variables
 const requiredEnv = ['MONGO_URI', 'JWT_SECRET', 'JWT_REFRESH_SECRET'];
 const missing = requiredEnv.filter(k => !process.env[k]);
 if (missing.length) {
@@ -59,6 +59,7 @@ const externalServices = {
     CLOUD_API_SECRET: { name: 'Cloudinary API Secret' }
 };
 
+// Check for missing service credentials
 const missingServices = Object.entries(externalServices)
     .filter(([key]) => {
         if (key === 'RESEND_API_KEY' && resendFallback) {
@@ -154,6 +155,7 @@ app.get('/api/v1/health', async (req, res) => {
             environment: process.env.NODE_ENV || 'development'
         };
 
+        // Construct health response
         const health = {
             success: true,
             message: 'Server is running',

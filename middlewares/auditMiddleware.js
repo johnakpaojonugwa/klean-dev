@@ -1,9 +1,6 @@
 import { logger } from '../utils/logger.js';
 
-/**
- * Audit logging for sensitive operations
- * Logs changes to payment status, order status, and financial transactions
- */
+// Log audit information 
 export const auditLog = (operationType, description) => {
     return async (req, res, next) => {
         // Store audit info in request for later use
@@ -45,9 +42,7 @@ export const auditLog = (operationType, description) => {
     };
 };
 
-/**
- * Extract relevant changes from request body
- */
+// Extract relevant fields for audit logging based on operation type
 const extractChanges = (body, operationType) => {
     const relevantFields = {
         'payment-status-update': ['paymentStatus', 'totalAmount'],
@@ -68,10 +63,7 @@ const extractChanges = (body, operationType) => {
     return changes;
 };
 
-/**
- * Persist audit logs to database (optional)
- * Uncomment when AuditLog model is available
- */
+// Persist audit log to database
 const persistAuditLog = async (auditEvent) => {
     try {
         // Uncomment when model is created
@@ -82,9 +74,7 @@ const persistAuditLog = async (auditEvent) => {
     }
 };
 
-/**
- * Utility to log data changes between old and new values
- */
+// Utility function to compare before and after data for changes
 export const logDataChange = (before, after, fields) => {
     const changes = {};
     

@@ -1,5 +1,6 @@
 import { isValidEmail, isStrongPassword } from '../utils/validators.js';
 
+// Validation middleware for user registration
 export const validateRegister = (req, res, next) => {
     const { fullname, email, phoneNumber, password, confirmPassword } = req.body || {};
 
@@ -28,6 +29,7 @@ export const validateRegister = (req, res, next) => {
     next();
 };
 
+// Validation middleware for login
 export const validateLogin = (req, res, next) => {
     const { email, password } = req.body || {};
 
@@ -47,6 +49,7 @@ export const validateLogin = (req, res, next) => {
     next();
 };
 
+// Validation middleware for user creation (admin endpoint)
 export const validateCreateOrder = (req, res, next) => {
     const { 
         branchId, 
@@ -111,16 +114,7 @@ export const validateCreateOrder = (req, res, next) => {
     next();
 };
 
-export const validateComment = (req, res, next) => {
-    const { text } = req.body || {};
-
-    if (!text || text.trim().length === 0) {
-        return res.status(400).json({ success: false, message: "Comment text is required" });
-    }
-
-    next();
-};
-
+// Validation middleware for user updates (allows partial updates)
 export const validateUpdateUser = (req, res, next) => {
     const { email, fullname, role } = req.body || {};
     const errors = [];

@@ -24,6 +24,7 @@ class RedisRateLimiter {
         }
     }
 
+    // Create or get a rate limiter for a specific key
     createLimiter(key, options = {}) {
         const {
             keyPrefix = 'rl',
@@ -70,7 +71,6 @@ class RedisRateLimiter {
 
         return async (req, res, next) => {
             if (!limiter) {
-                // Fallback to next middleware if Redis limiter not available
                 return next();
             }
 
@@ -118,6 +118,7 @@ class RedisRateLimiter {
         return this._generalLimiter;
     }
 
+    // Specific limiter for authentication routes (stricter limits)
     get authLimiter() {
         if (!this._authLimiter) {
             this._authLimiter = this.createMiddleware('auth', {
@@ -130,6 +131,7 @@ class RedisRateLimiter {
         return this._authLimiter;
     }
 
+    // Specific limiter for API routes (more generous limits)
     get apiLimiter() {
         if (!this._apiLimiter) {
             this._apiLimiter = this.createMiddleware('api', {
@@ -141,6 +143,7 @@ class RedisRateLimiter {
         return this._apiLimiter;
     }
 
+    // Specific limiter for analytics routes (moderate limits)
     get analyticsLimiter() {
         if (!this._analyticsLimiter) {
             this._analyticsLimiter = this.createMiddleware('analytics', {
@@ -152,6 +155,7 @@ class RedisRateLimiter {
         return this._analyticsLimiter;
     }
 
+    // Specific limiter for admin routes (stricter limits)
     get adminLimiter() {
         if (!this._adminLimiter) {
             this._adminLimiter = this.createMiddleware('admin', {
@@ -168,8 +172,6 @@ class RedisRateLimiter {
         if (!this.isRedisAvailable) return;
 
         try {
-            // This would typically be called by a scheduled job
-            // Redis automatically expires keys, but this can help with cleanup
             logger.info('Rate limiter cleanup completed');
         } catch (error) {
             logger.error('Rate limiter cleanup error:', error.message);
@@ -188,8 +190,6 @@ class RedisRateLimiter {
                 return { available: false, limiter: null };
             }
 
-            // This is a simplified stats method
-            // In production, you might want more detailed metrics
             return {
                 available: true,
                 limiter: key,

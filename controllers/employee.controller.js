@@ -216,11 +216,13 @@ export const updateEmployee = async (req, res, next) => {
             return sendError(res, 404, "Employee not found");
         }
 
+        // Branch managers can only update their branch's employees
         if (req.user.role === 'BRANCH_MANAGER' && String(employee.branchId) !== String(req.user.branchId)) {
             await session.abortTransaction();
             return sendError(res, 403, "You can only update employees in your branch");
         }
 
+        // Only allow specific fields to be updated
         const updates = {};
         const userUpdates = {};
         const allowedFields = ['designation', 'department', 'reportingManagerId', 'status', 'fullname'];
@@ -234,6 +236,7 @@ export const updateEmployee = async (req, res, next) => {
             userUpdates.avatar = updates.avatar;
         }
 
+        // Validate and prepare updates
         for (const field of allowedFields) {
             if (field in req.body) {
                 const value = req.body[field];

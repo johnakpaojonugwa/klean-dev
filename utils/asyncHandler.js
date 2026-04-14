@@ -16,10 +16,7 @@ export const asyncHandler = (fn) => {
     };
 };
 
-/**
- * Wrapper for database operations to ensure consistency
- * Automatically rolls back transactions on error
- */
+// Wrapper for Mongoose transactions in route handlers
 export const withTransaction = (fn) => {
     return asyncHandler(async (req, res, next) => {
         const mongoose = await import('mongoose').then(m => m.default);

@@ -1,80 +1,176 @@
-import request from 'supertest';
 import express from 'express';
-import { login, register } from '../../controllers/auth.controller.js';
 import { validateRegister, validateLogin } from '../../middlewares/validationMiddleware.js';
+import { isValidEmail, isStrongPassword } from '../../utils/validators.js';
 
-describe('Auth Controller', () => {
-    describe('Register', () => {
-        it('should fail with invalid email', async () => {
-            const payload = {
+describe('Auth Validation Middleware', () => {
+    describe('validateRegister', () => {
+        let req, res, next;
+
+        beforeEach(() => {
+            req = { body: {} };
+            res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+            next = jest.fn();
+        });
+
+        it('should pass with valid registration data', () => {
+            req.body = {
+                fullname: 'John Doe',
+                email: 'john@example.com',
+                phoneNumber: '+1234567890',
+                password: 'Password123!',
+                confirmPassword: 'Password123!'
+            };
+
+            validateRegister(req, res, next);
+            expect(next).toHaveBeenCalled();
+            expect(res.status).not.toHaveBeenCalled();
+        });
+
+        it('should reject registration with invalid email', () => {
+            req.body = {
                 fullname: 'John Doe',
                 email: 'invalid-email',
-                password: 'TestPassword123!'
+                phoneNumber: '+1234567890',
+                password: 'Password123!',
+                confirmPassword: 'Password123!'
             };
 
-            // Validation should catch this
-            expect(() => {
-                if (!payload.email.includes('@')) throw new Error('Invalid email');
-            }).toThrow();
+            validateRegister(req, res, next);
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalled();
+            const response = res.json.mock.calls[0][0];
+            expect(response.errors).toContain('Valid email is required');
         });
 
-        it('should fail with weak password', async () => {
-            const payload = {
+        it('should reject registration with weak password', () => {
+            req.body = {
                 fullname: 'John Doe',
                 email: 'john@example.com',
-                password: 'weak'
+                phoneNumber: '+1234567890',
+                password: 'weak',
+                confirmPassword: 'weak'
             };
 
-            expect(payload.password.length).toBeLessThan(8);
+            validateRegister(req, res, next);
+            expect(res.status).toHaveBeenCalledWith(400);
+            const response = res.json.mock.calls[0][0];
+            expect(response.errors).toContain('Password must be at least 8 characters with uppercase, number, and special character');
         });
 
-        it('should require fullname of at least 3 characters', async () => {
-            const payload = {
-                fullname: 'Jo',
+        it('should reject mismatched passwords', () => {
+            req.body = {
+                fullname: 'John Doe',
                 email: 'john@example.com',
-                password: 'TestPassword123!'
+                phoneNumber: '+1234567890',
+                password: 'Password123!',
+                confirmPassword: 'Different123!'
             };
 
-            expect(payload.fullname.length).toBeLessThan(3);
+            validateRegister(req, res, next);
+            expect(res.status).toHaveBeenCalledWith(400);
+            const response = res.json.mock.calls[0][0];
+            expect(response.errors).toContain('Password and confirm password do not match');
+        });
+
+        it('should reject short fullname', () => {
+            req.body = {
+                fullname: 'Jo',
+                email: 'john@example.com',
+                phoneNumber: '+1234567890',
+                password: 'Password123!',
+                confirmPassword: 'Password123!'
+            };
+
+            validateRegister(req, res, next);
+            expect(res.status).toHaveBeenCalledWith(400);
+            const response = res.json.mock.calls[0][0];
+            expect(response.errors).toContain('Full name must be at least 3 characters');
         });
     });
 
-    describe('Login', () => {
-        it('should require email', () => {
-            const payload = {
-                email: '',
-                password: 'TestPassword123!'
-            };
+    describe('validateLogin', () => {
+        let req, res, next;
 
-            expect(payload.email).toBeFalsy();
+        beforeEach(() => {
+            req = { body: {} };
+            res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+            next = jest.fn();
         });
 
-        it('should require password', () => {
-            const payload = {
+        it('should pass with valid login credentials', () => {
+            req.body = {
+                email: 'test@example.com',
+                password: 'Password123!'
+            };
+
+            validateLogin(req, res, next);
+            expect(next).toHaveBeenCalled();
+            expect(res.status).not.toHaveBeenCalled();
+        });
+
+        it('should reject login with invalid email', () => {
+            req.body = {
+                email: 'invalid-email',
+                password: 'Password123!'
+            };
+
+            validateLogin(req, res, next);
+            expect(res.status).toHaveBeenCalledWith(400);
+            const response = res.json.mock.calls[0][0];
+            expect(response.errors).toContain('Valid email is required');
+        });
+
+        it('should reject login with missing password', () => {
+            req.body = {
                 email: 'test@example.com',
                 password: ''
             };
 
-            expect(payload.password).toBeFalsy();
+            validateLogin(req, res, next);
+            expect(res.status).toHaveBeenCalledWith(400);
+            const response = res.json.mock.calls[0][0];
+            expect(response.errors).toContain('Password is required');
         });
 
-        it('should validate email format', () => {
-            const email = 'invalid-email';
-            const isValid = email.includes('@') && email.includes('.');
+        it('should reject login with missing email', () => {
+            req.body = {
+                email: '',
+                password: 'Password123!'
+            };
 
-            expect(isValid).toBe(false);
+            validateLogin(req, res, next);
+            expect(res.status).toHaveBeenCalledWith(400);
+            const response = res.json.mock.calls[0][0];
+            expect(response.errors).toContain('Valid email is required');
+        });
+    });
+});
+
+describe('Auth Validators', () => {
+    describe('isValidEmail', () => {
+        it('should accept valid email addresses', () => {
+            expect(isValidEmail('user@example.com')).toBe(true);
+            expect(isValidEmail('test.user@domain.co.uk')).toBe(true);
+        });
+
+        it('should reject invalid email addresses', () => {
+            expect(isValidEmail('invalid-email')).toBe(false);
+            expect(isValidEmail('user@')).toBe(false);
+            expect(isValidEmail('@example.com')).toBe(false);
         });
     });
 
-    describe('Token Generation', () => {
-        it('should create access and refresh tokens', () => {
-            const tokens = {
-                accessToken: 'jwt.token.here',
-                refreshToken: 'jwt.refresh.token'
-            };
+    describe('isStrongPassword', () => {
+        it('should accept strong passwords', () => {
+            expect(isStrongPassword('Password123!')).toBe(true);
+            expect(isStrongPassword('SecurePass@456')).toBe(true);
+        });
 
-            expect(tokens).toHaveProperty('accessToken');
-            expect(tokens).toHaveProperty('refreshToken');
+        it('should reject weak passwords', () => {
+            expect(isStrongPassword('weak')).toBe(false);
+            expect(isStrongPassword('password')).toBe(false);
+            expect(isStrongPassword('Pass123')).toBe(false); // missing special char
+            expect(isStrongPassword('password123!')).toBe(false); // missing uppercase
         });
     });
 });

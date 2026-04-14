@@ -11,6 +11,7 @@ export const createUser = async (req, res, next) => {
         const { fullname, email, phoneNumber, password, address, role, branchId } = req.body;
         const avatar = req.files?.avatar?.[0]?.path;
 
+        // Branch assignment logic based on role
         let assignedBranchId = branchId;
         if (!assignedBranchId && req.user.role === "BRANCH_MANAGER") {
             assignedBranchId = req.user.branchId;
@@ -29,6 +30,7 @@ export const createUser = async (req, res, next) => {
             return sendError(res, 400, "Email or Phone number already in use");
         }
 
+        // Create the user
         const newUser = new User({
             fullname,
             email: email.toLowerCase().trim(),
@@ -82,13 +84,14 @@ export const createBranchManager = async (req, res, next) => {
             return sendError(res, 404, "Branch not found");
         }
 
-        // Additional check: ensure branch doesn't already have a manager
+        // Ensure branch doesn't already have a manager
         if (branch.manager) {
             await session.abortTransaction();
             session.endSession();
             return sendError(res, 409, "This branch already has an assigned manager");
         }
 
+        // Check for existing email or phone number conflicts
         const existingConflict = await User.findOne({
             $or: [
                 { email: email?.toLowerCase()?.trim() },
@@ -108,6 +111,7 @@ export const createBranchManager = async (req, res, next) => {
             return sendError(res, 409, "This branch already has an assigned manager");
         }
 
+        // Create the Branch Manager user
         const newManager = new User({
             fullname: fullname?.trim(),
             email: email?.toLowerCase()?.trim(),
@@ -140,6 +144,7 @@ export const createBranchManager = async (req, res, next) => {
     }
 };
 
+// Get branch manager
 export const getBranchManagers = async (req, res, next) => {
     try {
         let query = { role: 'BRANCH_MANAGER' };
@@ -165,6 +170,7 @@ export const getBranchManagers = async (req, res, next) => {
         const limit = Math.min(parseInt(req.query.limit) || 10, 100);
         const skip = (page - 1) * limit;
 
+        // Fetch managers and total count in parallel for pagination
         const [managers, total] = await Promise.all([
             User.find(query)
                 .select('-password')
@@ -186,6 +192,7 @@ export const getBranchManagers = async (req, res, next) => {
     }
 };
 
+// Get single branch manager by ID
 export const getBranchManagerById = async (req, res, next) => {
     try {
         const { userId } = req.params;
@@ -195,6 +202,7 @@ export const getBranchManagerById = async (req, res, next) => {
             return sendError(res, 404, "Branch manager not found");
         }
 
+        // Branch managers can only access their own profile
         const managerBranchId = manager.branchId?._id ? manager.branchId._id.toString() : manager.branchId?.toString();
         if (req.user.role === 'BRANCH_MANAGER' && managerBranchId !== req.user.branchId?.toString()) {
             return sendError(res, 403, "Access denied");
@@ -207,6 +215,7 @@ export const getBranchManagerById = async (req, res, next) => {
     }
 };
 
+// Update branch manager
 export const updateBranchManager = async (req, res, next) => {
     try {
         const { userId } = req.params;
@@ -218,6 +227,7 @@ export const updateBranchManager = async (req, res, next) => {
             return sendError(res, 404, "Branch manager not found");
         }
 
+        // Branch managers can only update their own profile
         const updates = {};
         if (fullname) updates.fullname = fullname.trim();
         if (email) updates.email = email.trim().toLowerCase();
@@ -267,6 +277,7 @@ export const updateBranchManager = async (req, res, next) => {
     }
 };
 
+// Delete branch manager
 export const deleteBranchManager = async (req, res, next) => {
     try {
         const { userId } = req.params;
@@ -438,6 +449,7 @@ export const getSingleUser = async (req, res, next) => {
     }
 };
 
+// update user details (Admin/Manager)
 export const updateUser = async (req, res, next) => {
     try {
         const { userId } = req.params;
@@ -464,8 +476,8 @@ export const updateUser = async (req, res, next) => {
             }
         }
 
+        // Only Super Admins can change roles and branch assignments
         const updates = {};
-        // General Info
         if (fullname) updates.fullname = fullname.trim();
         if (email) updates.email = email.trim().toLowerCase();
         if (phoneNumber) updates.phoneNumber = phoneNumber.trim(); 
@@ -559,6 +571,7 @@ export const updateOwnProfile = async (req, res, next) => {
         const user = await User.findById(req.user.id);
         if (!user) return sendError(res, 404, "User not found");
 
+        // Only allow updates to certain fields for own profile
         const updates = {};
         
         if (fullname?.trim()) updates.fullname = fullname.trim();

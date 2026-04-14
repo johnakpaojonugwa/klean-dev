@@ -5,7 +5,7 @@ import { logger } from "../utils/logger.js";
 import mongoose from "mongoose";
 import { analyticsService } from "../services/analyticsService.js";
 
-// Add Inventory Item (With Initial Log)
+// Add Inventory Item 
 export const addInventoryItem = async (req, res, next) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -15,6 +15,7 @@ export const addInventoryItem = async (req, res, next) => {
         // Calculate initial reorder status
         const reorderPending = Number(currentStock) <= Number(reorderLevel);
 
+        // Create Inventory Item
         const [item] = await Inventory.create([{
             branchId,
             itemName,
@@ -123,6 +124,7 @@ export const getInventoryByBranch = async (req, res, next) => {
         const pageNum = Math.max(1, parseInt(page));
         const limitNum = parseInt(limit);
 
+        // Fetch items and total count in parallel for pagination
         const [items, total] = await Promise.all([
             Inventory.find(query)
                 .populate('branchId', 'name')
@@ -142,7 +144,7 @@ export const getInventoryByBranch = async (req, res, next) => {
     }
 };
 
-// Update Item Details (Optimized)
+// Update Item Details 
 export const updateInventoryItem = async (req, res, next) => {
     try {
         const { itemId } = req.params;
@@ -174,15 +176,14 @@ export const getLowStockItems = async (req, res, next) => {
         // Scope to branch if provided (for Managers)
         let query = { $expr: { $lte: ['$currentStock', '$reorderLevel'] } };
         if (req.user.role === 'BRANCH_MANAGER' || req.user.role === 'STAFF') {
-            // Managers can ONLY see their own branch, regardless of the query string
             query.branchId = req.user.branchId;
         } else if (req.user.role === 'SUPER_ADMIN' && branchId) {
-            // Admins can see any branch they specifically request
             query.branchId = branchId;
         }
 
         const skip = (parseInt(page) - 1) * parseInt(limit);
         
+        // Fetch items and total count in parallel for pagination
         const [items, total] = await Promise.all([
             Inventory.find(query)
                 .populate('branchId', 'name')

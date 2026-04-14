@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 
+// Middleware to authenticate user using JWT
 export const auth = async (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1]
     if (!token) return res.status(401).json({ message: 'Unauthorized' })
@@ -17,6 +18,7 @@ export const auth = async (req, res, next) => {
     }
 }
 
+// Middleware to authorize user based on role
 export const authorize = (...allowedRoles) => {
     return (req, res, next) => {
         if (!req.user || !allowedRoles.includes(req.user.role)) {

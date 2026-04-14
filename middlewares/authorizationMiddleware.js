@@ -1,7 +1,3 @@
-/**
- * Authorization middleware to check roles and permissions
- * Must be used with auth middleware first
- */
 
 /**
  * Check if user has one of the specified roles

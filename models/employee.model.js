@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { customAlphabet } from "nanoid";
 
+// Generate a unique employee number in the format EMP-YYYY-XXXXXX
 const nanoid = customAlphabet("1234567890", 6);
 
 const employeeSchema = new mongoose.Schema({
@@ -98,7 +99,8 @@ const employeeSchema = new mongoose.Schema({
     terminationReason: String,
     exitNotes: String
 
-}, { timestamps: true,
+}, {
+    timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
 });

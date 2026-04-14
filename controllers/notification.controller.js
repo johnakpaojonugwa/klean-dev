@@ -66,7 +66,7 @@ export const markNotificationAsRead = async (req, res, next) => {
     }
 };
 
-// Mark All as Read (Optimized)
+// Mark All as Read
 export const markAllNotificationsAsRead = async (req, res, next) => {
     try {
         const userId = req.user.id;
@@ -175,7 +175,6 @@ export const manuallyTriggerLowStockCheck = async (req, res, next) => {
             return sendError(res, 403, "Only SUPER_ADMIN can trigger a system-wide check");
         }
 
-        // Fire and forget: process in background
         notificationService.checkAndAlertLowStock();
 
         return sendResponse(res, 202, true, "Global low-stock check initiated in background");

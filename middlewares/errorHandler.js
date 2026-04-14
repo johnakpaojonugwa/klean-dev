@@ -35,6 +35,7 @@ export const errorHandler = (err, req, res, next) => {
         message = 'Invalid or malformed token';
     }
 
+    // JWT expired error
     if (err.name === 'TokenExpiredError') {
         status = 401;
         message = 'Token has expired';

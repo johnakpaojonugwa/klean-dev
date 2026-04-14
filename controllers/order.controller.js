@@ -34,10 +34,10 @@ const INVENTORY_TRANSITIONS = [
   },
 ];
 
-// HELPER: Deduct inventory for a given transition
+// Deduct inventory for a given transition
 const deductInventoryForTransition = async (oldStatus, newStatus, order, session, performedBy) => {
   const rule = INVENTORY_TRANSITIONS.find(
-    (t) => t.from === oldStatus && t.to === newStatus
+    (transition) => transition.from === oldStatus && transition.to === newStatus
   );
 
   if (!rule) return null;
@@ -71,6 +71,7 @@ const deductInventoryForTransition = async (oldStatus, newStatus, order, session
   item.currentStock -= rule.quantity;
   await item.save({ session });
 
+  // Log the stock change with order reference for better traceability
   await StockLog.create(
     [
       {
@@ -90,33 +91,33 @@ const deductInventoryForTransition = async (oldStatus, newStatus, order, session
   return item;
 };
 
-// HELPERS: Safe employee task adjustments (prevent negative counts)
+// Safe employee task adjustments (prevent negative counts)
 const adjustEmployeeAssignedTasks = async (employeeId, delta, session) => {
   if (!employeeId) return;
-  const emp = await Employee.findById(employeeId).session(session);
-  if (!emp) {
+  const employee = await Employee.findById(employeeId).session(session);
+  if (!employee) {
     logger.warn(`Employee not found: ${employeeId}`);
     return;
   }
-  const current = Number(emp.assignedTasks || 0);
+  const current = Number(employee.assignedTasks || 0);
   const updated = Math.max(0, current + delta);
   if (updated === current) return;
-  emp.assignedTasks = updated;
-  await emp.save({ session });
+  employee.assignedTasks = updated;
+  await employee.save({ session });
 };
 
 const adjustEmployeeCompletedTasks = async (employeeId, delta, session) => {
   if (!employeeId) return;
-  const emp = await Employee.findById(employeeId).session(session);
-  if (!emp) {
+  const employee = await Employee.findById(employeeId).session(session);
+  if (!employee) {
     logger.warn(`Employee not found: ${employeeId}`);
     return;
   }
-  const current = Number(emp.completedTasks || 0);
+  const current = Number(employee.completedTasks || 0);
   const updated = Math.max(0, current + delta);
   if (updated === current) return;
-  emp.completedTasks = updated;
-  await emp.save({ session });
+  employee.completedTasks = updated;
+  await employee.save({ session });
 };
 
 // Create Order
@@ -135,7 +136,7 @@ export const createOrder = async (req, res, next) => {
       return sendError(res, 400, "At least one item is required");
     }
 
-    // Noramlize pickupDate
+    // Normalize pickupDate
     const requestedPickup = new Date(pickupDate).setHours(0, 0, 0, 0);
     const today = new Date().setHours(0, 0, 0, 0);
     if (requestedPickup < today) {
@@ -174,6 +175,7 @@ export const createOrder = async (req, res, next) => {
       return sendError(res, 400, "Invalid priority value");
     }
 
+    // Validate serviceType enum
     const effectiveServiceType = serviceType?.toUpperCase() || 'WASH_FOLD';
     const validServiceTypes = ['WASH_FOLD', 'IRONING', 'DRY_CLEANING', 'STAIN_REMOVAL', 'ALTERATIONS'];
     if (!validServiceTypes.includes(effectiveServiceType)) {
@@ -184,6 +186,7 @@ export const createOrder = async (req, res, next) => {
     // Validate discount and amount
     const effectiveDiscount = Math.max(0, Math.min(100, discount || 0));
 
+    // Create Order
     const order = new Order({
       customerId: effectiveCustomerId,
       customerName: sanitizeInput(customerName),
@@ -212,6 +215,7 @@ export const createOrder = async (req, res, next) => {
       await adjustEmployeeAssignedTasks(order.assignedEmployee, 1, session);
     }
 
+    // Update Branch Stats
     await Branch.findByIdAndUpdate(
       effectiveBranchId,
       { $inc: { totalOrders: 1 } },
@@ -220,6 +224,7 @@ export const createOrder = async (req, res, next) => {
 
     await session.commitTransaction();
 
+    // Populate related fields for response
     const populatedOrder = await Order.findById(order._id).populate([
       "customerId", "branchId", "createdBy",
     ]);
@@ -250,6 +255,7 @@ export const getOrders = async (req, res, next) => {
 
     let query = {};
 
+    // Role-based access control
     if (req.user.role === "CUSTOMER") {
       query.customerId = req.user.id;
     } else if (req.user.role === "BRANCH_MANAGER") {
@@ -270,6 +276,7 @@ export const getOrders = async (req, res, next) => {
       ];
     }
 
+    // Fetch orders and total count in parallel for pagination
     const [orders, total] = await Promise.all([
       Order.find(query)
         .populate(
@@ -328,7 +335,7 @@ export const getOrderById = async (req, res, next) => {
   }
 };
 
-// Mark Order Paid (helper endpoint)
+// Mark Order Paid 
 export const markOrderPaid = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -365,7 +372,7 @@ export const markOrderPaid = async (req, res, next) => {
   }
 };
 
-// Update Order (General)
+// Update Order 
 export const updateOrder = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -412,7 +419,6 @@ export const updateOrder = async (req, res, next) => {
 
     Object.assign(order, updates);
 
-    // Let the model's pre-save push a single status history entry; provide updatedBy
     if (updates.status && updates.status !== previousStatus) {
       order._updatedBy = req.user.id;
     }
@@ -488,11 +494,11 @@ export const updateOrderStatus = async (req, res, next) => {
       return sendError(res, stockError.statusCode || 400, stockError.message);
     }
 
-    // Status Update — rely on model pre-save to record history; supply updatedBy
+    // Status Update
     order.status = status;
     order._updatedBy = req.user.id;
 
-    // Task Tracking: when transitioning into READY/DELIVERED from non-ready/delivered
+    // Task Tracking
     if (order.assignedEmployee && ["READY", "DELIVERED"].includes(status) && !["READY", "DELIVERED"].includes(oldStatus)) {
       await adjustEmployeeAssignedTasks(order.assignedEmployee, -1, session);
       await adjustEmployeeCompletedTasks(order.assignedEmployee, 1, session);

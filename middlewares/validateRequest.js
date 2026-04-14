@@ -1,4 +1,4 @@
-// Reusable validation middleware with detailed error messages
+// Validation middleware for request bodies and query parameters
 export const validateOrderCreation = (req, res, next) => {
     const { customerId, branchId, items, dueDate } = req.body || {};
     const errors = [];
@@ -52,6 +52,7 @@ export const validateOrderCreation = (req, res, next) => {
     next();
 };
 
+// Validation middleware for inventory item creation and updates
 export const validateInventoryItem = (req, res, next) => {
     const { branchId, itemName, category, currentStock, unit, reorderLevel, supplierContact } = req.body || {};
     const errors = [];
@@ -95,6 +96,7 @@ export const validateInventoryItem = (req, res, next) => {
     next();
 };
 
+// Validation middleware for stock adjustments
 export const validateStockAdjustment = (req, res, next) => {
     const { amount, changeType, reason } = req.body || {};
     const errors = [];
@@ -130,6 +132,7 @@ export const validateStockAdjustment = (req, res, next) => {
     next();
 };
 
+// Validation middleware for payroll creation
 export const validatePayrollCreation = (req, res, next) => {
     const { employeeId, payrollMonth, baseSalary, grossSalary, deductions } = req.body || {};
     const errors = [];
@@ -165,6 +168,7 @@ export const validatePayrollCreation = (req, res, next) => {
     next();
 };
 
+// Validation middleware for branch creation and updates
 export const validateBranchCreation = (req, res, next) => {
     const { name, address, email, contactNumber, servicesOffered } = req.body || {};
     const errors = [];
@@ -200,6 +204,7 @@ export const validateBranchCreation = (req, res, next) => {
     next();
 };
 
+// Validation middleware for branch updates (allows partial updates)
 export const validateBranchUpdate = (req, res, next) => {
     const { name, address, email, contactNumber, servicesOffered } = req.body || {};
     const errors = [];
@@ -244,6 +249,7 @@ export const validateBranchUpdate = (req, res, next) => {
     next();
 };
 
+// Validation middleware for pagination query parameters
 export const validatePaginationParams = (req, res, next) => {
     const { page, limit } = req.query;
 

@@ -5,10 +5,7 @@ import { generateInvoicePDF } from "../utils/pdfGenerator.js";
 import { sendResponse, sendError } from "../utils/response.js";
 import { logger } from "../utils/logger.js";
 
-/**
- * Generates a unique, professional invoice number.
- * Pattern: INV-YYYY-XXXXX
- */
+// Generate Unique Invoice Number (Format: INV-YYYY-XXXXX-XXX)
 const generateInvoiceNumber = async () => {
     const date = new Date().getFullYear();
     const count = await Invoice.countDocuments({ 
@@ -17,8 +14,7 @@ const generateInvoiceNumber = async () => {
             $lte: new Date(`${date}-12-31`) 
         } 
     });
-    // Use padStart(5) for scale and add a short random string to prevent 
-    // collisions if two invoices are generated at the exact same time.
+
     const uniqueSuffix = Math.random().toString(36).substring(2, 5).toUpperCase();
     return `INV-${date}-${(count + 1).toString().padStart(5, '0')}-${uniqueSuffix}`;
 };

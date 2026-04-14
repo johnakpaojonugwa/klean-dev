@@ -17,7 +17,6 @@ export const getDashboard = async (req, res, next) => {
         // Get the standard summary from the service
         const summary = await analyticsService.getDashboardSummary(branchId);
 
-        // EXTRA: If Super Admin and no specific branch is selected, add the Leaderboard
         if (req.user.role === 'SUPER_ADMIN' && !req.query.branchId) {
             summary.branchLeaderboard = await Branch.find({})
                 .select('name branchCode totalRevenue totalOrders')
@@ -42,7 +41,7 @@ export const getAnalyticsPeriod = async (req, res, next) => {
         // Validate date format (ISO 8601)
         const start = new Date(startDate);
         const end = new Date(endDate);
-        
+
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
             return sendError(res, 400, "Invalid date format. Use ISO 8601 format (YYYY-MM-DD)");
         }
@@ -69,11 +68,11 @@ export const getAnalyticsPeriod = async (req, res, next) => {
 
 export const getDailyAnalytics = async (req, res, next) => {
     try {
-        const { date, startDate, branchId } = req.query; 
+        const { date, startDate, branchId } = req.query;
         const queryBranchId = getQueryBranchId(req.user, branchId);
 
         // Fallback to today if no date is provided
-        const targetDate = startDate || date || new Date().toISOString().split('T')[0]; 
+        const targetDate = startDate || date || new Date().toISOString().split('T')[0];
         const analyticsDate = new Date(targetDate);
 
         const analytics = await analyticsService.generateDailyAnalytics(
@@ -100,7 +99,7 @@ export const getOrderTrends = async (req, res, next) => {
         // Validate date format
         const start = new Date(startDate);
         const end = new Date(endDate);
-        
+
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
             return sendError(res, 400, "Invalid date format. Use ISO 8601 format (YYYY-MM-DD)");
         }
@@ -112,7 +111,7 @@ export const getOrderTrends = async (req, res, next) => {
         const queryBranchId = getQueryBranchId(req.user, branchId);
         const result = await analyticsService.getAnalyticsPeriod(start, end, queryBranchId);
 
-        // ✅ Safety: Fallback to empty array if analytics is missing
+        // Safety: Fallback to empty array if analytics is missing
         const analyticsData = result?.analytics || [];
 
         const trends = {
@@ -122,7 +121,7 @@ export const getOrderTrends = async (req, res, next) => {
                 revenue: a.totalRevenue || 0
             })),
             statusBreakdown: analyticsData.reduce((acc, a) => {
-                // ✅ Safety: Check if ordersByStatus exists
+                // Safety: Check if ordersByStatus exists
                 const statusMap = a.ordersByStatus || {};
                 Object.keys(statusMap).forEach(status => {
                     acc[status] = (acc[status] || 0) + statusMap[status];
@@ -146,7 +145,7 @@ export const getRevenueAnalytics = async (req, res, next) => {
         // Validate date format
         const start = new Date(startDate);
         const end = new Date(endDate);
-        
+
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
             return sendError(res, 400, "Invalid date format. Use ISO 8601 format (YYYY-MM-DD)");
         }
@@ -169,7 +168,7 @@ export const getRevenueAnalytics = async (req, res, next) => {
                 unpaid: a.unpaidOrders || 0
             })),
             totalRevenue: totals.totalRevenue,
-            // ✅ Safety: Prevent division by zero
+            // Safety: Prevent division by zero
             averageOrderValue: (totals.totalRevenue / (totals.totalOrders || 1)).toFixed(2)
         };
 
@@ -190,7 +189,7 @@ export const getCustomerAnalytics = async (req, res, next) => {
         // Validate date format
         const start = new Date(startDate);
         const end = new Date(endDate);
-        
+
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
             return sendError(res, 400, "Invalid date format. Use ISO 8601 format (YYYY-MM-DD)");
         }
@@ -255,11 +254,11 @@ export const exportDashboardPDF = async (req, res, next) => {
         doc.fontSize(16).text('Key Metrics');
         doc.moveDown(0.5);
         doc.fontSize(12)
-           .text(`Total Revenue: ₱${dashboardData.liveTotals?.revenue || 0}`)
-           .text(`Total Orders: ${dashboardData.liveTotals?.orders || 0}`)
-           .text(`Pending Workload: ${dashboardData.pendingWorkload || 0}`);
+            .text(`Total Revenue: ₱${dashboardData.liveTotals?.revenue || 0}`)
+            .text(`Total Orders: ${dashboardData.liveTotals?.orders || 0}`)
+            .text(`Pending Workload: ${dashboardData.pendingWorkload || 0}`);
 
-        // If you have charts or lists, you'd loop through them here
+        // Branch Leaderboard
         if (dashboardData.recentOrders) {
             doc.moveDown().fontSize(16).text('Recent Transactions');
             dashboardData.recentOrders.forEach(order => {

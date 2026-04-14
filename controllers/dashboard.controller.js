@@ -6,13 +6,13 @@ import { sendResponse } from "../utils/response.js";
 
 export const getManagerDashboard = async (req, res, next) => {
     try {
-        const branchId = req.user.branchId; // Assumes Manager is logged in
+        const branchId = req.user.branchId; 
 
-        // 1. Fetch Branch Stats (Instant because of denormalization)
+        // Fetch Branch Stats
         const branchStats = await Branch.findById(branchId)
             .select('totalOrders totalRevenue name branchCode');
 
-        // 2. Fetch Aggregated Metrics
+        // Fetch Aggregated Metrics
         const metrics = await Order.aggregate([
             { $match: { branchId: branchStats._id } },
             {
@@ -35,13 +35,13 @@ export const getManagerDashboard = async (req, res, next) => {
             }
         ]);
 
-        // 3. Get Inventory Alerts
+        // Get Inventory Alerts
         const lowStock = await Inventory.find({
             branchId,
             $expr: { $lte: ["$currentStock", "$reorderLevel"] }
         }).select('name currentStock unit').lean(); // Optimize read-only query
 
-        // 4. Staff Performance Snapshot
+        // Staff Performance Snapshot
         const staffStats = await Employee.find({ branchId })
             .populate('userId', 'fullname')
             .select('completedTasks assignedTasks')

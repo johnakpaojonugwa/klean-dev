@@ -6,6 +6,7 @@ import Branch from "../models/branch.model.js";
 import { logger } from "../utils/logger.js";
 import redisService from "./redisService.js";
 
+// getBranchMatch helper to handle both ObjectId and String branchId formats
 const getBranchMatch = (branchId) => {
     if (branchId && mongoose.Types.ObjectId.isValid(branchId)) {
         const objId = new mongoose.Types.ObjectId(branchId);
@@ -17,6 +18,7 @@ const getBranchMatch = (branchId) => {
     return {};
 };
 
+// Analytics Service
 export const analyticsService = {
     // GENERATE DAILY ANALYTICS
     generateDailyAnalytics: async (dateInput = new Date(), branchId = null) => {
@@ -40,6 +42,7 @@ export const analyticsService = {
                 ...getBranchMatch(branchId)
             };
 
+            // Use aggregation to get all necessary metrics in one query for performance
             const orderMetrics = await Order.aggregate([
                 { $match: matchStage },
                 {
@@ -63,8 +66,8 @@ export const analyticsService = {
                 }
             ]);
 
-            const m = orderMetrics[0];
-            const totals = m.totals[0] || { count: 0, totalValue: 0, revenue: 0 };
+            const match = orderMetrics[0];
+            const totals = match.totals[0] || { count: 0, totalValue: 0, revenue: 0 };
 
             const newCustomers = await User.countDocuments({
                 role: 'CUSTOMER',
@@ -80,6 +83,7 @@ export const analyticsService = {
                 ? new mongoose.Types.ObjectId(branchId)
                 : null;
 
+            // Create analytics data object
             const analyticsData = {
                 date: startOfDay,
                 branchId: safeBranchId,
@@ -98,7 +102,7 @@ export const analyticsService = {
             // Cache the result for 10 minutes before returning
             await redisService.set(cacheKey, JSON.stringify(analyticsData), 'EX', 600);
 
-            // Return live data without saving to database (unified live queries approach)
+            // Return live data without saving to database
             return analyticsData;
         } catch (error) {
             logger.error("Daily Analytics Error:", error.message);
@@ -204,7 +208,7 @@ export const analyticsService = {
                     pendingWorkload: pendingCount,
                     inventoryAlerts: lowStock,
                     branchCount: branches.length,
-                    branchLeaderboard: branchLeaderboard // Add this for SuperAdmin branch comparison
+                    branchLeaderboard: branchLeaderboard 
                 };
             }, cacheTTL);
         } catch (error) {
@@ -246,12 +250,9 @@ export const analyticsService = {
 
     clearAllAnalyticsCacheForBranch: async (branchId) => {
         try {
-            // Clear dashboard cache for this branch
             const dashboardKey = redisService.getAnalyticsKey('dashboard', { branchId });
             await redisService.del(dashboardKey);
 
-            // Clear period analytics cache for this branch (need to clear multiple patterns)
-            // Since we can't pattern match directly, we'll clear the main cache
             await redisService.clearAnalyticsCache();
 
             logger.info(`All analytics cache cleared for branch: ${branchId}`);
@@ -288,6 +289,7 @@ export const analyticsService = {
                         ...getBranchMatch(branchId)
                     };
 
+                    // Use aggregation to get all necessary metrics for the day in one query for performance
                     const dayMetrics = await Order.aggregate([
                         { $match: matchStage },
                         {
@@ -306,8 +308,8 @@ export const analyticsService = {
                         }
                     ]);
 
-                    const m = dayMetrics[0];
-                    const totals = m.totals[0] || { count: 0, totalValue: 0, revenue: 0 };
+                    const metric = dayMetrics[0];
+                    const totals = metric.totals[0] || { count: 0, totalValue: 0, revenue: 0 };
 
                     // Accumulate totals
                     totalOrders += totals.count;

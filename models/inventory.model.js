@@ -4,7 +4,7 @@ const inventorySchema = new mongoose.Schema({
     branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch', required: true },
     itemName: { type: String, required: true },
     category: { type: String, enum: ['DETERGENT', 'SOFTENER', 'STAIN_REMOVAL', 'PACKAGING', 'HANGERS', 'EQUIPMENTS', 'CHEMICALS', 'OTHER'], default: 'OTHER' },
-    sku: { type: String, description: 'Stock keeping unit'},
+    sku: { type: String, description: 'Stock keeping unit' },
     currentStock: { type: Number, default: 0, min: 0 },
     unit: { type: String, enum: ['kg', 'liters', 'pieces', 'boxes', 'rolls'], default: 'kg' },
     costPerUnit: { type: Number, default: 0 },

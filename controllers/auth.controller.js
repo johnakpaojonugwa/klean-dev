@@ -3,10 +3,9 @@ import jwt from "jsonwebtoken";
 import { sendResponse, sendError } from "../utils/response.js";
 import { logger } from "../utils/logger.js";
 import { isValidEmail, isStrongPassword } from "../utils/validators.js";
-// Note: smsService and emailService are dynamically imported inside handlers
 import crypto from "crypto";
 
-// Helper to generate tokens (expects a user document or payload containing id/role/branchId/phoneNumber)
+// Helper to generate tokens 
 const generateTokens = (userOrPayload) => {
     const payload = (userOrPayload && userOrPayload._id) ? {
         id: userOrPayload._id,
@@ -38,7 +37,7 @@ export const register = async (req, res, next) => {
         // Role Guard
         const publicRoles = ['CUSTOMER']; 
         const assignedRole = publicRoles.includes(role?.toUpperCase()) ? role.toUpperCase() : 'CUSTOMER';
-        // Check if user already exists
+
         const existingUser = await User.findOne({ email: email.toLowerCase() });
         if (existingUser) {
             logger.warn(`Registration attempt with existing email: ${email}`);
@@ -47,7 +46,7 @@ export const register = async (req, res, next) => {
 
         const avatar = req.files?.avatar?.[0]?.path || null;
 
-        // Password hashing is now handled by model pre-save hook
+        // Create user
         const user = await User.create({
             fullname: fullname.trim(),
             email: email.toLowerCase(),
@@ -55,11 +54,11 @@ export const register = async (req, res, next) => {
             password,
             confirmPassword,
             role: assignedRole,
-            branchId: assignedRole === 'CUSTOMER' ? null : branchId, // Ensure branchId is set from the token or request body
+            branchId: assignedRole === 'CUSTOMER' ? null : branchId, 
             avatar
         });
 
-        // welcome SMS/email (dynamically import services to avoid initializing external SDKs at module load)
+        // welcome SMS/email for customers only
         if (user.role === 'CUSTOMER') {
             try {
                 const { emailService } = await import('../utils/emailService.js');
@@ -130,7 +129,7 @@ export const login = async (req, res, next) => {
 
         const { accessToken, refreshToken } = generateTokens(user);
 
-        // Persist refresh token for this session
+        // Persist refresh token
         try {
             const hashed = crypto.createHash('sha256').update(refreshToken).digest('hex');
             const decoded = jwt.decode(refreshToken);
@@ -291,7 +290,7 @@ export const resetPassword = async (req, res, next) => {
         const { token } = req.params;
         const { password, confirmPassword } = req.body;
 
-        // Validation - strong requirements
+        // Strong Validation 
         const errors = [];
         if (!password || !isStrongPassword(password)) {
             errors.push("Password must be at least 8 characters with uppercase, number, and special character");
@@ -332,7 +331,7 @@ export const resetPassword = async (req, res, next) => {
 
         logger.info(`Password reset successful for user: ${user.email}`);
 
-        // Log them in automatically
+        // log the user in immediately after password reset by generating tokens
         const { accessToken, refreshToken } = generateTokens(user);
 
         return sendResponse(res, 200, true, "Password reset successful", {
@@ -389,7 +388,7 @@ export const changePassword = async (req, res, next) => {
             return sendError(res, 401, "Current password is incorrect");
         }
 
-        // Update password (pre-save hook will hash it)
+        // Update password 
         user.password = newPassword;
         await user.save();
 

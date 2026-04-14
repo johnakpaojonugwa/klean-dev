@@ -15,6 +15,7 @@ export const createTestServer = () => {
     return app;
 };
 
+// Integration tests for API endpoints
 describe('API Integration Tests', () => {
     let server;
 

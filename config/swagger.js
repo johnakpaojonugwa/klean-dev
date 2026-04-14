@@ -21,7 +21,7 @@ const options = {
                 description: 'Development server'
             },
             {
-                url: 'https://klean.vercel.app/api/v1',
+                url: 'https://klean-app.vercel.app/api/v1',
                 description: 'Production server'
             }
         ],
@@ -62,7 +62,7 @@ const options = {
                         orderNumber: { type: 'string' },
                         customerId: { type: 'string' },
                         branchId: { type: 'string' },
-                        status: { type: 'string', enum: ['RECEIVED', 'WASHING', 'DRYING', 'READY', 'DELIVERED', 'CANCELLED'] },
+                        status: { type: 'string', enum: ['PENDING', 'PROCESSING', 'WASHING', 'DRYING', 'IRONING', 'READY', 'DELIVERED', 'CANCELLED'] },
                         paymentStatus: { type: 'string', enum: ['UNPAID', 'PARTIAL', 'PAID'] },
                         totalAmount: { type: 'number' },
                         createdAt: { type: 'string', format: 'date-time' }

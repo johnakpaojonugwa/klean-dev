@@ -11,7 +11,7 @@ describe('Authentication API', () => {
         await User.deleteMany({});
     });
 
-    describe('POST /api/v1/auth/register', () => {
+    describe('POST /api/v1/auth/sign-up', () => {
         it('should register a new customer successfully', async () => {
             const userData = {
                 fullname: 'John Doe',
@@ -22,7 +22,7 @@ describe('Authentication API', () => {
             };
 
             const response = await request(app)
-                .post('/api/v1/auth/register')
+                .post('/api/v1/auth/sign-up')
                 .send(userData)
                 .expect(201);
 
@@ -43,7 +43,7 @@ describe('Authentication API', () => {
             };
 
             const response = await request(app)
-                .post('/api/v1/auth/register')
+                .post('/api/v1/auth/sign-up')
                 .send(userData)
                 .expect(400);
 
@@ -61,7 +61,7 @@ describe('Authentication API', () => {
             };
 
             const response = await request(app)
-                .post('/api/v1/auth/register')
+                .post('/api/v1/auth/sign-up')
                 .send(userData)
                 .expect(400);
 
@@ -80,13 +80,13 @@ describe('Authentication API', () => {
 
             // First registration
             await request(app)
-                .post('/api/v1/auth/register')
+                .post('/api/v1/auth/sign-up')
                 .send(userData)
                 .expect(201);
 
             // Second registration with same email
             const response = await request(app)
-                .post('/api/v1/auth/register')
+                .post('/api/v1/auth/sign-up')
                 .send(userData)
                 .expect(409);
 
@@ -137,7 +137,7 @@ describe('Authentication API', () => {
                 .expect(401);
 
             expect(response.body.success).toBe(false);
-            expect(response.body.message).toBe('Invalid email or password');
+            expect(response.body.message).toBe('Invalid credentials');
         });
 
         it('should reject login with non-existent email', async () => {
@@ -152,11 +152,11 @@ describe('Authentication API', () => {
                 .expect(401);
 
             expect(response.body.success).toBe(false);
-            expect(response.body.message).toBe('Invalid email or password');
+            expect(response.body.message).toBe('Invalid credentials');
         });
     });
 
-    describe('POST /api/v1/auth/refresh', () => {
+    describe('POST /api/v1/auth/refresh-token', () => {
         let refreshToken;
 
         beforeEach(async () => {
@@ -182,7 +182,7 @@ describe('Authentication API', () => {
 
         it('should refresh tokens successfully', async () => {
             const response = await request(app)
-                .post('/api/v1/auth/refresh')
+                .post('/api/v1/auth/refresh-token')
                 .send({ refreshToken })
                 .expect(200);
 
@@ -193,7 +193,7 @@ describe('Authentication API', () => {
 
         it('should reject invalid refresh token', async () => {
             const response = await request(app)
-                .post('/api/v1/auth/refresh')
+                .post('/api/v1/auth/refresh-token')
                 .send({ refreshToken: 'invalid-token' })
                 .expect(401);
 

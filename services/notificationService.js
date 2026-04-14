@@ -10,9 +10,7 @@ import { emailService } from "../utils/emailService.js";
 import { smsService } from "../utils/smsService.js";
 
 export const notificationService = {
-    /**
-     * Create and send notification
-     */
+    // Create and send notification
     createAndSendNotification: async (userId, type, category, data) => {
         try {
             const user = await User.findById(userId);
@@ -61,9 +59,7 @@ export const notificationService = {
         }
     },
 
-    /**
-     * Get user notifications
-     */
+    // Get user notifications with pagination
     getUserNotifications: async (userId, page = 1, limit = 10) => {
         try {
             const skip = (page - 1) * limit;
@@ -85,9 +81,7 @@ export const notificationService = {
         }
     },
 
-    /**
-     * Mark notification as read
-     */
+    // Mark notification as read
     markAsRead: async (notificationId) => {
         try {
             const notification = await Notification.findByIdAndUpdate(
@@ -102,9 +96,7 @@ export const notificationService = {
         }
     },
 
-    /**
-     * Check low stock and send alerts
-     */
+    // Check inventory levels and send low-stock alerts
     checkAndAlertLowStock: async () => {
         try {
             logger.info("Starting low-stock check...");
@@ -200,9 +192,7 @@ export const notificationService = {
         }
     },
 
-    /**
-     * Send order status notification
-     */
+    // Send order status update notification
     sendOrderStatusNotification: async (orderId) => {
         try {
             const order = await Order.findById(orderId)
@@ -242,9 +232,7 @@ export const notificationService = {
         }
     },
 
-    /**
-     * Send payment reminder
-     */
+    // Send payment reminder notification
     sendPaymentReminder: async (orderId) => {
         try {
             const order = await Order.findById(orderId)

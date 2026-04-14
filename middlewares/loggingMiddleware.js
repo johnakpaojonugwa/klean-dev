@@ -1,9 +1,6 @@
 import { logger } from '../utils/logger.js';
 
-/**
- * Request/Response logging middleware
- * Logs all incoming requests and outgoing responses with timing
- */
+// Middleware to log incoming requests and outgoing responses
 export const requestLogger = (req, res, next) => {
     const startTime = Date.now();
     const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -51,9 +48,7 @@ export const requestLogger = (req, res, next) => {
     next();
 };
 
-/**
- * Logs errors with full context
- */
+// Middleware to log errors with context
 export const logErrorContext = (err, req, res, next) => {
     const errorContext = {
         requestId: req.id,
@@ -78,9 +73,7 @@ export const logErrorContext = (err, req, res, next) => {
     next(err);
 };
 
-/**
- * Logs database operations
- */
+// Log database operations
 export const logDatabaseOperation = (operation, model, data = {}) => {
     logger.info(`Database Operation: ${operation}`, {
         operation,
@@ -90,9 +83,7 @@ export const logDatabaseOperation = (operation, model, data = {}) => {
     });
 };
 
-/**
- * Logs authentication events
- */
+// Log authentication events
 export const logAuthEvent = (event, userId, metadata = {}) => {
     logger.info(`Auth Event: ${event}`, {
         event,
@@ -102,9 +93,7 @@ export const logAuthEvent = (event, userId, metadata = {}) => {
     });
 };
 
-/**
- * Logs notification events
- */
+// Log notification events
 export const logNotificationEvent = (type, recipient, status) => {
     logger.info(`Notification Sent: ${type}`, {
         type,

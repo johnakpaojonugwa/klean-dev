@@ -141,8 +141,7 @@ export const updateBranch = async (req, res, next) => {
             return sendError(res, 404, "Branch not found");
         }
 
-        // Apply updates to the branch object
-        // This allows the pre-validate hook to "see" the changes
+        // Allow only specific fields to be updated
         const allowedUpdates = ['name', 'email', 'address', 'contactNumber', 'manager', 'isActive', 'servicesOffered', 'operatingHours'];
 
         Object.keys(updates).forEach((key) => {
@@ -151,16 +150,12 @@ export const updateBranch = async (req, res, next) => {
             }
         });
 
-        // If the name changed, we clear the branchCode so the hook regenerates it
         if (updates.name) {
             branch.branchCode = undefined;
         }
 
-        // Save the document
-        // This triggers the 'pre-validate' hook and all schema validations
         await branch.save();
 
-        // Populate manager info after saving
         await branch.populate('manager', 'fullname email');
 
         // Clear analytics cache for this branch
