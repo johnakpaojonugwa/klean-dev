@@ -5,7 +5,8 @@ export const generateInvoicePDF = (invoice, branch) => {
     const doc = new PDFDocument({ margin: 50 });
 
     // Header - Brand Name & Branch Details
-    doc.fillColor("#444444")
+    doc.fillColor("#222222")
+       .font("Helvetica-Bold")
        .fontSize(20)
        .text(branch.name.toUpperCase(), 50, 50)
        .fontSize(10)
@@ -64,7 +65,7 @@ function generateTableRow(doc, y, item, qty, price, total) {
 }
 
 function generateHr(doc, y) {
-    doc.strokeColor("#aaaaaa")
+    doc.strokeColor("#666666")
        .lineWidth(1)
        .moveTo(50, y)
        .lineTo(550, y)
