@@ -78,7 +78,7 @@ Base URL: `/api/v1`
 - `middlewares/` — authentication, authorization, validation, error handling, rate limiting
 - `services/` — Redis, analytics, notification, payroll, and other shared services
 - `utils/` — helper modules for logging, response formatting, file upload, email, and scheduling
-- `tests/` — integration and unit tests with Jest
+- `tests/` — integration and unit tests with Jest.
 
 ## Testing
 
