@@ -91,12 +91,12 @@ export const analyticsService = {
                 totalOrderValue: totals.totalValue,
                 totalRevenue: totals.revenue,
                 averageOrderValue: totals.count > 0 ? totals.totalValue / totals.count : 0,
-                ordersByStatus: m.statusCounts.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {}),
-                paidOrders: m.paymentCounts.find(p => p._id === 'PAID')?.count || 0,
-                unpaidOrders: m.paymentCounts.find(p => p._id === 'UNPAID')?.count || 0,
+                ordersByStatus: match.statusCounts.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {}),
+                paidOrders: match.paymentCounts.find(p => p._id === 'PAID')?.count || 0,
+                unpaidOrders: match.paymentCounts.find(p => p._id === 'UNPAID')?.count || 0,
                 newCustomers,
                 lowStockAlerts: lowStockCount,
-                peakOrderHours: m.peakHours.map(h => h._id).join(',')
+                peakOrderHours: match.peakHours.map(h => h._id).join(',')
             };
 
             // Cache the result for 10 minutes before returning
@@ -323,9 +323,9 @@ export const analyticsService = {
                         totalOrderValue: totals.totalValue,
                         totalRevenue: totals.revenue,
                         averageOrderValue: totals.count > 0 ? totals.totalValue / totals.count : 0,
-                        ordersByStatus: m.statusCounts.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {}),
-                        paidOrders: m.paymentCounts.find(p => p._id === 'PAID')?.count || 0,
-                        unpaidOrders: m.paymentCounts.find(p => p._id === 'UNPAID')?.count || 0
+                        ordersByStatus: metric.statusCounts.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {}),
+                        paidOrders: metric.paymentCounts.find(p => p._id === 'PAID')?.count || 0,
+                        unpaidOrders: metric.paymentCounts.find(p => p._id === 'UNPAID')?.count || 0
                     };
 
                     analytics.push(dailyAnalytics);
